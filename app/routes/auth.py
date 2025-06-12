@@ -84,19 +84,6 @@ def logout():
     response.delete_cookie(key="logged_in")
     return response
 
-# @router.post("/reset-password")
-# def reset_password(
-#     phone: str = Form(...),
-#     password: str = Form(...),
-#     db: Session = Depends(get_db)
-# ):
-#     user = db.query(User).filter(User.mobile_number == phone).first()
-#     if user:
-#         user.password = password
-#         db.add(user)
-#         db.commit()
-#         return JSONResponse(content={"message": "Password reset successful"})
-#     return JSONResponse(content={"detail": "Invalid credentials"}, status_code=401)
 
 @router.post("/reset-password")
 def reset_password(req: ResetPasswordRequest, db: Session = Depends(get_db)):

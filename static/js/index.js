@@ -11,6 +11,10 @@ let selectedPincode = null
 // Available pincodes - will be fetched from backend
 let availablePincodes = []
 
+// Slider functionality
+let currentSlideIndex = 0
+const totalSlides = 3
+
 // ==========================================
 // INITIALIZATION AND SETUP
 // ==========================================
@@ -24,6 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initializeWebsite()
   checkFirstVisit()
   fetchAndDisplayProducts() // Your original product fetching code
+  initializeSlider() // Initialize hero slider
 })
 
 /**
@@ -44,31 +49,90 @@ function initializeWebsite() {
  */
 function checkAuthState() {
   try {
-    const user = JSON.parse(localStorage.getItem('user'))
-    const authText = document.getElementById('authText')
-    
+    const user = JSON.parse(localStorage.getItem("user"))
+    const authText = document.getElementById("authText")
+
     if (!authText) {
-      console.error('Auth text element not found')
+      console.error("Auth text element not found")
       return
     }
-    
-    if (user && typeof user.first_name === 'string' && user.first_name.length > 0) {
-      console.log('Setting auth text to:', `Hi ${user.first_name}`)
+
+    if (user && typeof user.first_name === "string" && user.first_name.length > 0) {
+      console.log("Setting auth text to:", `Hi ${user.first_name}`)
       authText.textContent = `Hi ${user.first_name}`
       isLoggedIn = true
     } else {
-      console.log('Setting auth text to: Sign In / Register')
-      authText.textContent = 'Sign In / Register'
+      console.log("Setting auth text to: Sign In")
+      authText.textContent = "Sign In"
       isLoggedIn = false
     }
   } catch (err) {
-    console.error('Error checking auth state:', err)
-    const authText = document.getElementById('authText')
+    console.error("Error checking auth state:", err)
+    const authText = document.getElementById("authText")
     if (authText) {
-      authText.textContent = 'Sign In / Register'
+      authText.textContent = "Sign In"
     }
     isLoggedIn = false
   }
+}
+
+// ==========================================
+// SLIDER FUNCTIONALITY
+// ==========================================
+
+/**
+ * Initialize hero slider
+ */
+function initializeSlider() {
+  // Auto-slide every 5 seconds
+  setInterval(() => {
+    changeSlide(1)
+  }, 5000)
+}
+
+/**
+ * Change slide by direction
+ * @param {number} direction - 1 for next, -1 for previous
+ */
+function changeSlide(direction) {
+  const slides = document.querySelectorAll(".slide")
+  const dots = document.querySelectorAll(".dot")
+
+  // Remove active class from current slide and dot
+  slides[currentSlideIndex].classList.remove("active")
+  dots[currentSlideIndex].classList.remove("active")
+
+  // Update slide index
+  currentSlideIndex += direction
+  if (currentSlideIndex >= totalSlides) {
+    currentSlideIndex = 0
+  } else if (currentSlideIndex < 0) {
+    currentSlideIndex = totalSlides - 1
+  }
+
+  // Add active class to new slide and dot
+  slides[currentSlideIndex].classList.add("active")
+  dots[currentSlideIndex].classList.add("active")
+}
+
+/**
+ * Go to specific slide
+ * @param {number} slideNumber - Slide number (1-based)
+ */
+function currentSlide(slideNumber) {
+  const slides = document.querySelectorAll(".slide")
+  const dots = document.querySelectorAll(".dot")
+
+  // Remove active class from current slide and dot
+  slides[currentSlideIndex].classList.remove("active")
+  dots[currentSlideIndex].classList.remove("active")
+
+  // Update to new slide
+  currentSlideIndex = slideNumber - 1
+
+  // Add active class to new slide and dot
+  slides[currentSlideIndex].classList.add("active")
+  dots[currentSlideIndex].classList.add("active")
 }
 
 // ==========================================
@@ -123,6 +187,18 @@ function calculateCartTotals() {
     totalSavings: totalSavings,
     count: count,
     items: cart,
+  }
+}
+
+/**
+ * Update cart count display
+ */
+function updateCartCount() {
+  const cart = getCartFromStorage()
+  const totalCount = cart.reduce((sum, item) => sum + item.quantity, 0)
+  const cartCountElement = document.getElementById("cartCount")
+  if (cartCountElement) {
+    cartCountElement.textContent = totalCount
   }
 }
 
@@ -308,27 +384,27 @@ function setupPincodeSearch() {
  */
 function toggleAuth() {
   try {
-    const user = JSON.parse(localStorage.getItem("user"));
-    console.log('User data:', user);
+    const user = JSON.parse(localStorage.getItem("user"))
+    console.log("User data:", user)
 
-    if (user && typeof user.first_name === 'string' && user.first_name.length > 0) {
-      const dropdown = document.getElementById("logoutDropdown");
-      const authText = document.getElementById("authText");
+    if (user && typeof user.first_name === "string" && user.first_name.length > 0) {
+      const dropdown = document.getElementById("logoutDropdown")
+      const authText = document.getElementById("authText")
 
       // Show dropdown
-      if (dropdown) dropdown.classList.toggle("active");
+      if (dropdown) dropdown.classList.toggle("active")
 
       // Update name display
       if (authText) {
-        authText.textContent = `Hi ${user.first_name}`;
+        authText.textContent = `Hi ${user.first_name}`
       }
     } else {
       // Not logged in, redirect to login
-      window.location.href = "/login";
+      window.location.href = "/login"
     }
   } catch (err) {
-    console.error('Error in toggleAuth:', err);
-    window.location.href = "/login";
+    console.error("Error in toggleAuth:", err)
+    window.location.href = "/login"
   }
 }
 
@@ -337,24 +413,23 @@ function toggleAuth() {
  */
 function confirmLogout() {
   // Clear user data from localStorage
-  localStorage.removeItem('user')
-  
+  localStorage.removeItem("user")
+
   // Update UI
-  const authButton = document.getElementById('authButton')
-  const authText = document.getElementById('authText')
+  const authButton = document.getElementById("authButton")
+  const authText = document.getElementById("authText")
   if (authText) {
-    authText.textContent = 'Sign In / Register'
+    authText.textContent = "Sign In"
   }
-  
+
   // Hide logout dropdown
-  const dropdown = document.getElementById('logoutDropdown')
+  const dropdown = document.getElementById("logoutDropdown")
   if (dropdown) {
-    dropdown.classList.remove('active')
+    dropdown.classList.remove("active")
   }
-  
+
   // Redirect to home page
-  window.location.href = '/'
-  if (dropdown) dropdown.classList.remove("active")
+  window.location.href = "/"
 
   alert("You have been logged out successfully!")
 }
@@ -368,22 +443,6 @@ function cancelLogout() {
     dropdown.classList.remove("active")
   }
 }
-
-/**
- * Check authentication state and update UI accordingly
- */
-// function checkAuthState() {
-//   const user = JSON.parse(localStorage.getItem('user'))
-//   const authText = document.getElementById('authText')
-  
-//   if (user && authText) {
-//     authText.textContent = `Hi ${user.name}`
-//     isLoggedIn = true
-//   } else {
-//     authText.textContent = 'Sign In / Register'
-//     isLoggedIn = false
-//   }
-// }
 
 // ==========================================
 // CART FUNCTIONALITY
@@ -462,71 +521,132 @@ async function fetchAndDisplayProducts() {
       throw new Error("Invalid products data received")
     }
 
-    renderProducts(products)
+    // ✅ Limit to only first 12 products
+    const limitedProducts = products.slice(0, 12)
+
+    renderProducts(limitedProducts)
   } catch (error) {
     console.error("Error fetching products:", error)
     container.innerHTML = `
-            <div class="error-message">
-                <i class="fas fa-exclamation-circle"></i>
-                <p>Failed to load products. Please try again later.</p>
-            </div>
-        `
+      <div class="error-message">
+          <i class="fas fa-exclamation-circle"></i>
+          <p>Failed to load products. Please try again later.</p>
+      </div>
+    `
   }
 }
 
 /**
- * Render products in the container
- * Your original function - preserved as requested
+ * Render products in the container with enhanced design and dropdown variants
  */
 function renderProducts(products) {
-  const container = document.getElementById("featuredProductsContainer")
-  if (!container) return
+  const container = document.getElementById("featuredProductsContainer");
+  if (!container) return;
 
   if (products.length === 0) {
     container.innerHTML = `
-            <div class="no-products-message">
-                <i class="fas fa-box-open"></i>
-                <p>No products available at the moment.</p>
-            </div>
-        `
-    return
+      <div class="no-products-message">
+        <i class="fas fa-box-open"></i>
+        <p>No products available at the moment.</p>
+      </div>
+    `;
+    return;
   }
 
   container.innerHTML = products
-    .map(
-      (product) => `
-        <div class="product-card" data-category="${product.category || "uncategorized"}" style="cursor: pointer;" onclick="goToProductDetails(${product.id})">
-            <div class="product-image">${product.icon || "🍪"}</div>
-            <div class="product-info">
-                <h3>${product.item_name || "Unnamed Product"}</h3>
-                <div class="product-price">₹${product.price_01 ? product.price_01.toFixed(2) : "N/A"}</div>
-                <p>${product.description || "No description available"}</p>
-                <button class="add-to-cart" onclick="event.stopPropagation(); addToCart(${product.id})">
-                    Add to Cart <i class="fas fa-shopping-cart"></i>
-                </button>
-            </div>
-        </div>
-    `,
-    )
-    .join("")
+    .map((product) => {
+      // Use provided variants or fallback to price_01 and price_02
+      const variants =
+        product.variants && product.variants.length > 0
+          ? product.variants
+          : [
+              { packing: "250g", price: product.price_01 || 100 },
+              { packing: "500g", price: product.price_02 || product.price_01 || 100 },
+            ];
 
-  // Add function to window object so it can be called from onclick
-  window.goToProductDetails = function(productId) {
-    window.location.href = `/product-details.html?id=${productId}`
-  }
+      // Find highest and lowest price variant
+      const highestVariant = variants.reduce((max, v) =>
+        v.price > max.price ? v : max
+      );
+      const minPrice = Math.min(...variants.map((v) => v.price));
+
+      return `
+        <div class="product-card" data-category="${product.category || "uncategorized"}" data-product-id="${product.id}">
+<div class="product-image" onclick="goToProductDetails(${product.id})">
+  <img src="${product.image_url|| 'images/.png'}"
+       alt="${product.item_name}"
+       loading="lazy"
+       onload="this.parentElement.classList.add('loaded')"
+       onerror="this.src='images/placeholder.png'; this.classList.add('image-error');" />
+</div>
+
+          <div class="product-info">
+            <h3 onclick="goToProductDetails(${product.id})">${product.item_name || "Unnamed Product"}</h3>
+            
+            <div class="product-price-container">
+              <div class="product-price" id="price-${product.id}">₹${highestVariant.price.toFixed(2)}</div>
+              <div class="price-info">for ${highestVariant.packing}</div>
+            </div>
+            
+            <p class="product-description" onclick="goToProductDetails(${product.id})">${product.description || "Delicious snack made with premium ingredients"}</p>
+            
+            <div class="product-variants">
+              <select class="variants-dropdown" id="variant-${product.id}" onclick="event.stopPropagation();" onchange="updateProductPrice(${product.id}, this.value, this.options[this.selectedIndex].text)">
+                ${variants
+                  .map(
+                    (v, i) => `
+                      <option value="${v.price}" ${i === 0 ? "selected" : ""}>
+                        ${v.packing} - ₹${v.price.toFixed(2)}
+                      </option>
+                    `
+                  )
+                  .join("")}
+              </select>
+            </div>
+            
+            <button class="add-to-cart" onclick="event.stopPropagation(); addToCart(${product.id})">
+              <i class="fas fa-plus"></i>
+            </button>
+          </div>
+        </div>
+      `;
+    })
+    .join("");
+
+  // Navigate to product details page
+  window.goToProductDetails = (productId) => {
+    window.location.href = `/product-details.html?id=${productId}`;
+  };
+
+  // Update the displayed price and selected variant info
+  window.updateProductPrice = (productId, price, variantText) => {
+    const priceElement = document.getElementById(`price-${productId}`);
+    if (priceElement) {
+      priceElement.textContent = `₹${Number.parseFloat(price).toFixed(2)}`;
+    }
+
+    const productCard = document.querySelector(`[data-product-id="${productId}"]`);
+    if (productCard) {
+      productCard.setAttribute("data-selected-price", price);
+      productCard.setAttribute("data-selected-variant", variantText.split(" - ")[0]);
+    }
+
+    event.preventDefault();
+    return false;
+  };
 }
 
 /**
- * Add product to cart with localStorage persistence (Updated to match product.js)
+ * Add product to cart with localStorage persistence and enhanced functionality
  */
 async function addToCart(productId, quantity = 1) {
   console.log("Adding product to cart, ID:", productId, "Quantity:", quantity)
 
   // Disable button and show loading state
-  const button = document.querySelector(`button[onclick="addToCart(${productId})"]`)
+  const button = document.querySelector(`button[onclick*="addToCart(${productId})"]`)
   if (button) {
     button.disabled = true
-    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding...'
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'
   }
 
   try {
@@ -534,26 +654,39 @@ async function addToCart(productId, quantity = 1) {
     const cart = getCartFromStorage()
     console.log("Current cart:", cart)
 
+    // Get selected variant data from dropdown
+    const variantDropdown = document.getElementById(`variant-${productId}`)
+    const selectedPrice = variantDropdown ? Number.parseFloat(variantDropdown.value) : null
+    const selectedVariant = variantDropdown
+      ? variantDropdown.options[variantDropdown.selectedIndex].text.split(" - ")[0]
+      : null
+
     // Fetch product details from API
     const response = await fetch(`/api/products/${productId}`)
-    if (!response.ok) throw new Error('Failed to fetch product details')
+    if (!response.ok) throw new Error("Failed to fetch product details")
     const product = await response.json()
 
-    // Check if product already exists in cart
-    const existingItemIndex = cart.findIndex((item) => item.id === productId)
+    // Use selected price or fallback to default
+    const finalPrice = selectedPrice || product.price_01 || 100
+    const finalVariant = selectedVariant || "250g"
+
+    // Check if product already exists in cart with same variant
+    const existingItemIndex = cart.findIndex((item) => item.id === productId && item.variant === finalVariant)
 
     if (existingItemIndex !== -1) {
-      // Update quantity if product exists
+      // Update quantity if product exists with same variant
       cart[existingItemIndex].quantity += quantity
     } else {
-      // Add new item if product doesn't exist
+      // Add new item if product doesn't exist or different variant
       cart.push({
         id: productId,
         name: product.item_name,
-        price: product.price_01,
+        price: finalPrice,
         quantity: quantity,
-        icon: product.icon || '🍪',
-        description: product.description
+        icon: product.icon || "🍪",
+        description: product.description,
+        variant: finalVariant,
+        originalPrice: finalPrice + 20, // Mock original price for savings calculation
       })
     }
 
@@ -575,7 +708,7 @@ async function addToCart(productId, quantity = 1) {
     toast.className = "toast success"
     toast.innerHTML = `
             <i class="fas fa-check-circle"></i>
-            ${productName} added to cart!
+            ${product.item_name} (${finalVariant}) added to cart!
         `
     document.body.appendChild(toast)
 
@@ -626,7 +759,7 @@ async function addToCart(productId, quantity = 1) {
     // Reset button state
     if (button) {
       button.disabled = false
-      button.innerHTML = 'Add to Cart <i class="fas fa-shopping-cart"></i>'
+      button.innerHTML = '<i class="fas fa-plus"></i>'
     }
   }
 }
@@ -723,7 +856,7 @@ function renderCartItems() {
             <div class="cart-item-image">${item.icon}</div>
             <div class="cart-item-details">
                 <div class="cart-item-title">${item.name}</div>
-                <div class="cart-item-variant">Variant: 250g</div>
+                <div class="cart-item-variant">Variant: ${item.variant || "250g"}</div>
                 <div class="cart-item-price">
                     <div class="cart-item-pay">You Pay ₹${item.price.toFixed(2)}</div>
                     <div class="cart-item-save">You Save ₹${((item.originalPrice || item.price + 20) - item.price).toFixed(2)}</div>
@@ -814,18 +947,18 @@ document.addEventListener("click", (e) => {
   }
 })
 
-// ==========================================
-// DEMO FUNCTIONALITY
-// ==========================================
-
-/**
- * Simulate login after 3 seconds (for demo purposes)
- * Remove this in production
- */
-
-
 // Make functions globally accessible for onclick handlers
 window.addToCart = addToCart
 window.updateItemQuantity = updateItemQuantity
 window.removeFromCart = removeFromCart
 window.updateCartCount = updateCartCount
+window.toggleAuth = toggleAuth
+window.confirmLogout = confirmLogout
+window.cancelLogout = cancelLogout
+window.openPincodeModal = openPincodeModal
+window.closePincodeModal = closePincodeModal
+window.selectPincode = selectPincode
+window.scrollToTop = scrollToTop
+window.filterProducts = filterProducts
+window.changeSlide = changeSlide
+window.currentSlide = currentSlide

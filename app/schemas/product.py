@@ -16,6 +16,7 @@ class ProductCreate(BaseModel):
     packing_04: Optional[str] = None
     price_04: Optional[float] = None
     description: Optional[str] = None
+    imagesrc: Optional[str] = None
 
     class Config:
         orm_mode = True

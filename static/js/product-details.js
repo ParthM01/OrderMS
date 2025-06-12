@@ -10,6 +10,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   updateCartCount()
   await loadProductDetails()
   await loadRelatedProducts()
+  initializeScrollToTop()
+  checkAuthState()
 })
 
 // Load product details from backend
@@ -41,11 +43,11 @@ async function loadProductDetails() {
   }
 }
 
-// Render product details
+// Render product details - Enhanced with purple theme matching index page
 function renderProductDetails(product) {
   const container = document.getElementById("productContainer")
 
-  // Create variants array
+  // Create variants array - Preserved from your original code
   const variants = []
   for (let i = 1; i <= 4; i++) {
     const packing = product[`packing_0${i}`]
@@ -55,7 +57,7 @@ function renderProductDetails(product) {
     }
   }
 
-  // Calculate discount
+  // Calculate discount - Preserved from your original code
   let discountPercentage = 0
   if (product.original_price && product.price_01) {
     discountPercentage = Math.round(((product.original_price - product.price_01) / product.original_price) * 100)
@@ -107,7 +109,7 @@ function renderProductDetails(product) {
                 </div>
                 
                 <div class="product-description">
-                    ${product.description || "No description available for this product."}
+                    ${product.description || "Delicious snack made with premium ingredients and traditional recipes. Perfect for sharing with family and friends or enjoying as a personal treat."}
                 </div>
                 
                 <div class="product-meta">
@@ -179,7 +181,7 @@ function renderProductDetails(product) {
                     </div>
                     
                     <button class="add-to-cart-btn" onclick="addToCartFromDetails(${product.id})">
-                        <i class="fas fa-shopping-bag"></i>
+                        <i class="fas fa-plus"></i>
                         Add to Cart
                     </button>
                     
@@ -214,7 +216,7 @@ function renderProductDetails(product) {
                     
                     <div class="tab-content" id="reviews">
                         <p>Customer reviews will be displayed here. Be the first to review this product!</p>
-                        <div style="margin-top: 2rem; padding: 1rem; background: var(--background-light); border-radius: 8px;">
+                        <div style="margin-top: 2rem; padding: 1rem; background: linear-gradient(135deg, #f8f4ff 0%, #e8d5ff 100%); border-radius: 8px;">
                             <h4>Write a Review</h4>
                             <p>Share your experience with this product to help other customers make informed decisions.</p>
                         </div>
@@ -243,7 +245,7 @@ function renderProductDetails(product) {
     `
 }
 
-// Load related products from backend
+// Load related products from backend - Preserved from your original code
 async function loadRelatedProducts() {
   try {
     const response = await fetch(`${API_BASE_URL}/products`)
@@ -261,17 +263,16 @@ async function loadRelatedProducts() {
   } catch (error) {
     console.error("Error loading related products:", error)
     const container = document.getElementById("relatedGrid")
-    container.innerHTML =
-      '<p style="text-align: center; color: var(--text-light);">Failed to load related products.</p>'
+    container.innerHTML = '<p style="text-align: center; color: #7f8c8d;">Failed to load related products.</p>'
   }
 }
 
-// Render related products
+// Render related products - Enhanced with purple theme
 function renderRelatedProducts(products) {
   const container = document.getElementById("relatedGrid")
 
   if (products.length === 0) {
-    container.innerHTML = '<p style="text-align: center; color: var(--text-light);">No related products found.</p>'
+    container.innerHTML = '<p style="text-align: center; color: #7f8c8d;">No related products found.</p>'
     return
   }
 
@@ -287,8 +288,7 @@ function renderRelatedProducts(products) {
                 <p class="product-description">${(product.description || "").substring(0, 80)}...</p>
                 <div class="product-price">₹${product.price_01?.toFixed(2) || "N/A"}</div>
                 <button class="add-to-cart" onclick="event.stopPropagation(); addToCart(${product.id})">
-                    <i class="fas fa-shopping-bag"></i>
-                    Add to Cart
+                    <i class="fas fa-plus"></i>
                 </button>
             </div>
         </div>
@@ -297,7 +297,7 @@ function renderRelatedProducts(products) {
     .join("")
 }
 
-// Utility functions
+// Utility functions - Preserved from your original code
 function changeProductImage(emoji) {
   document.getElementById("mainProductImage").textContent = emoji
 
@@ -351,7 +351,7 @@ function switchTab(button, tabId) {
   document.getElementById(tabId).classList.add("active")
 }
 
-// Cart functions
+// Cart functions - Preserved from your original code
 function addToCartFromDetails(productId) {
   const quantity = Number.parseInt(document.getElementById("quantity").value)
   const selectedVariant = document.querySelector(".variant-item.active")
@@ -435,6 +435,26 @@ async function addToCart(productId, quantity = 1, variantInfo = null) {
 
     // Add animation effect
     animateAddToCart(button)
+
+    // Try to sync with server if available - Preserved from your original code
+    try {
+      const response = await fetch("/api/cart/sync", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ cart }),
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        if (result.data && result.data.cart) {
+          localStorage.setItem("cart", JSON.stringify(result.data.cart))
+        }
+      }
+    } catch (syncError) {
+      console.warn("Failed to sync cart with server:", syncError)
+    }
   } catch (error) {
     console.error("Error adding to cart:", error)
     showToast("Failed to add item to cart", "error")
@@ -451,37 +471,36 @@ function animateAddToCart(button) {
 
 function updateCartCount() {
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0)
-  document.getElementById("cartCount").textContent = totalItems
-  document.getElementById("cartBadge").textContent = totalItems
+  const cartCountElements = document.querySelectorAll("#cartCount, #cartBadge, #cartItemCount")
 
-  // Update checkout button state
-  const checkoutBtn = document.getElementById("checkoutBtn")
-  if (checkoutBtn) {
-    checkoutBtn.disabled = totalItems === 0
-  }
+  cartCountElements.forEach((element) => {
+    if (element) {
+      element.textContent = totalItems
+    }
+  })
 }
 
 function toggleCart() {
-  const sidebar = document.getElementById("cartSidebar")
-  const overlay = document.getElementById("cartOverlay")
+  const popup = document.getElementById("cartPopup")
+  const isActive = popup.classList.contains("active")
 
-  sidebar.classList.toggle("open")
-  overlay.classList.toggle("open")
-
-  if (sidebar.classList.contains("open")) {
+  if (isActive) {
+    popup.classList.remove("active")
+  } else {
+    popup.classList.add("active")
     renderCartItems()
   }
 }
 
 function renderCartItems() {
-  const container = document.getElementById("cartContent")
+  const container = document.getElementById("cartItems")
 
   if (cart.length === 0) {
     container.innerHTML = `
-            <div class="empty-cart">
-                <div class="empty-icon">🛒</div>
-                <h4>Your cart is empty</h4>
-                <p>Add some delicious snacks to get started!</p>
+            <div style="text-align: center; padding: 3rem;">
+                <i class="fas fa-shopping-cart" style="font-size: 4rem; color: #ddd; margin-bottom: 1rem;"></i>
+                <p style="color: #666; font-size: 1.1rem;">Your cart is empty</p>
+                <p style="color: #999; font-size: 0.9rem;">Add some delicious snacks to get started!</p>
             </div>
         `
     document.getElementById("cartTotal").textContent = "0"
@@ -491,19 +510,21 @@ function renderCartItems() {
   const cartHTML = cart
     .map(
       (item) => `
-        <div class="cart-item">
-            <div class="cart-item-image">${item.icon}</div>
-            <div class="cart-item-info">
-                <div class="cart-item-name">${item.name}</div>
-                ${item.variant ? `<div class="cart-item-variant">${item.variant}</div>` : ""}
-                <div class="cart-item-price">₹${item.price.toFixed(2)}</div>
-                <div class="cart-item-controls">
-                    <div class="cart-item-qty">
-                        <button class="qty-btn" onclick="updateCartItemQuantity(${item.id}, '${item.variant || ""}', -1)">-</button>
-                        <span class="qty-display">${item.quantity}</span>
-                        <button class="qty-btn" onclick="updateCartItemQuantity(${item.id}, '${item.variant || ""}', 1)">+</button>
+        <div class="cart-item" style="display: flex; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid var(--border-color);">
+            <div style="width: 60px; height: 60px; background: var(--gradient-secondary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 2rem;">
+                ${item.icon}
+            </div>
+            <div style="flex: 1;">
+                <div style="font-weight: 600; color: var(--text-dark); margin-bottom: 0.25rem;">${item.name}</div>
+                ${item.variant ? `<div style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 0.5rem;">${item.variant}</div>` : ""}
+                <div style="font-weight: 600; color: var(--primary-color);">₹${item.price.toFixed(2)}</div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <button onclick="updateCartItemQuantity(${item.id}, '${item.variant || ""}', -1)" style="background: var(--gradient-primary); border: none; color: white; width: 30px; height: 30px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center;">-</button>
+                        <span style="font-weight: 600; min-width: 30px; text-align: center;">${item.quantity}</span>
+                        <button onclick="updateCartItemQuantity(${item.id}, '${item.variant || ""}', 1)" style="background: var(--gradient-primary); border: none; color: white; width: 30px; height: 30px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center;">+</button>
                     </div>
-                    <button class="remove-item" onclick="removeFromCart(${item.id}, '${item.variant || ""}')">
+                    <button onclick="removeFromCart(${item.id}, '${item.variant || ""}')" style="background: none; border: none; color: #e74c3c; cursor: pointer; font-size: 1rem; margin-left: auto;">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -553,7 +574,7 @@ function removeFromCart(productId, variant) {
   }
 }
 
-// Navigation functions
+// Navigation functions - Preserved from your original code
 function goToProduct(productId) {
   window.location.href = `?id=${productId}`
 }
@@ -563,16 +584,69 @@ function performSearch() {
   const query = searchInput.value.trim()
 
   if (query) {
-    // In a real app, this would navigate to search results
-    window.location.href = `/products?search=${encodeURIComponent(query)}`
+    window.location.href = `/product?search=${encodeURIComponent(query)}`
   }
 }
 
-function openLocationModal() {
-  showToast("Location selector coming soon!", "info")
+// Pincode functions - Matching index page functionality
+function openPincodeModal() {
+  document.getElementById("pincodeModal").classList.add("active")
+  document.body.style.overflow = "hidden"
 }
 
-// Utility functions
+function closePincodeModal() {
+  document.getElementById("pincodeModal").classList.remove("active")
+  document.body.style.overflow = ""
+}
+
+// Auth functions - Matching index page functionality
+function toggleAuth() {
+  try {
+    const user = JSON.parse(localStorage.getItem("user"))
+    if (user && user.first_name) {
+      const dropdown = document.getElementById("logoutDropdown")
+      if (dropdown) dropdown.classList.toggle("active")
+    } else {
+      window.location.href = "/login"
+    }
+  } catch (err) {
+    window.location.href = "/login"
+  }
+}
+
+function confirmLogout() {
+  localStorage.removeItem("user")
+  const authText = document.getElementById("authText")
+  if (authText) authText.textContent = "Sign In"
+  const dropdown = document.getElementById("logoutDropdown")
+  if (dropdown) dropdown.classList.remove("active")
+  window.location.href = "/"
+}
+
+function cancelLogout() {
+  const dropdown = document.getElementById("logoutDropdown")
+  if (dropdown) dropdown.classList.remove("active")
+}
+
+function checkAuthState() {
+  try {
+    const user = JSON.parse(localStorage.getItem("user"))
+    const authText = document.getElementById("authText")
+
+    if (!authText) return
+
+    if (user && typeof user.first_name === "string" && user.first_name.length > 0) {
+      authText.textContent = `Hi ${user.first_name}`
+    } else {
+      authText.textContent = "Sign In"
+    }
+  } catch (err) {
+    const authText = document.getElementById("authText")
+    if (authText) authText.textContent = "Sign In"
+  }
+}
+
+// Utility functions - Preserved from your original code
 function updateBreadcrumb(productName) {
   document.getElementById("breadcrumbProduct").textContent = productName
   document.title = `${productName} - SnackMart`
@@ -587,9 +661,9 @@ function showError(title, message) {
             </div>
             <h2 class="error-title">${title}</h2>
             <p class="error-message">${message}</p>
-            <a href="/" class="back-to-products">
+            <a href="/product" class="back-to-products">
                 <i class="fas fa-arrow-left"></i>
-                Back to Home
+                Back to Products
             </a>
         </div>
     `
@@ -626,39 +700,99 @@ function hideToast() {
   document.getElementById("toast").classList.remove("show")
 }
 
-// Initialize cart on page load
+// Scroll to top functionality - Matching index page
+function initializeScrollToTop() {
+  const scrollTopBtn = document.getElementById("scrollTop")
+  if (!scrollTopBtn) return
+
+  window.addEventListener("scroll", () => {
+    if (window.pageYOffset > 300) {
+      scrollTopBtn.classList.add("visible")
+    } else {
+      scrollTopBtn.classList.remove("visible")
+    }
+  })
+}
+
+function scrollToTop() {
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth",
+  })
+}
+
+// Event listeners - Enhanced to match index page functionality
 document.addEventListener("DOMContentLoaded", () => {
   updateCartCount()
   renderCartItems()
+
+  // Close cart when clicking outside
+  document.addEventListener("click", (e) => {
+    const cartPopup = document.getElementById("cartPopup")
+    const cartIcon = document.querySelector(".cart-icon")
+
+    if (cartPopup.classList.contains("active") && !cartPopup.contains(e.target) && !cartIcon.contains(e.target)) {
+      toggleCart()
+    }
+  })
+
+  // Close auth dropdown when clicking outside
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".auth-container")) {
+      const dropdown = document.getElementById("logoutDropdown")
+      if (dropdown) dropdown.classList.remove("active")
+    }
+  })
+
+  // Close pincode modal when clicking outside
+  document.addEventListener("click", (e) => {
+    const modal = document.getElementById("pincodeModal")
+    const modalContent = document.querySelector(".pincode-modal-content")
+
+    if (modal.classList.contains("active") && !modalContent.contains(e.target)) {
+      closePincodeModal()
+    }
+  })
 })
 
-// Handle URL changes for navigation
+// Handle URL changes for navigation - Preserved from your original code
 window.addEventListener("popstate", () => {
   loadProductDetails()
 })
 
-// Close cart when clicking outside
-document.addEventListener("click", (e) => {
-  const cartSidebar = document.getElementById("cartSidebar")
-  const cartContainer = document.querySelector(".cart-container")
-
-  if (cartSidebar.classList.contains("open") && !cartSidebar.contains(e.target) && !cartContainer.contains(e.target)) {
-    toggleCart()
+// Handle search on Enter key - Preserved from your original code
+document.addEventListener("DOMContentLoaded", () => {
+  const searchInput = document.getElementById("searchInput")
+  if (searchInput) {
+    searchInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        performSearch()
+      }
+    })
   }
 })
 
-// Handle search on Enter key
-document.getElementById("searchInput").addEventListener("keypress", (e) => {
-  if (e.key === "Enter") {
-    performSearch()
-  }
-})
-
-// Error handling for network requests
+// Error handling for network requests - Preserved from your original code
 window.addEventListener("online", () => {
   showToast("Connection restored", "success")
 })
 
 window.addEventListener("offline", () => {
   showToast("No internet connection", "error")
+})
+
+// Keyboard navigation support
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    const cartPopup = document.getElementById("cartPopup")
+    const pincodeModal = document.getElementById("pincodeModal")
+
+    if (cartPopup.classList.contains("active")) {
+      toggleCart()
+    }
+
+    if (pincodeModal.classList.contains("active")) {
+      closePincodeModal()
+    }
+  }
 })

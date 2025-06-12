@@ -42,7 +42,8 @@ def get_all_products(db: Session = Depends(get_db)):
                 "item_name": p.item_name,
                 "category": p.category,
                 "price_01": max_price,
-                "description": p.description
+                "description": p.description,
+                "image_url": p.imagesrc
             })
 
         return product_list
@@ -72,4 +73,5 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
         "packing_04": product.packing_04,
         "shelf_life_days": product.shelf_life_days,
         "lead_time_days": product.lead_time_days,
+        "image_url": product.imagesrc 
     }

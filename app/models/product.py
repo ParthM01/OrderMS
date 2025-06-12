@@ -18,3 +18,4 @@ class Product(Base):
     packing_04 = Column(String(50), nullable=True)
     price_04 = Column(Float, nullable=True)
     description = Column(String(255), nullable=True)
+    imagesrc = Column(String(255), nullable=True)
