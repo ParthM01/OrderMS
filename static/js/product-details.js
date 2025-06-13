@@ -66,9 +66,13 @@ function renderProductDetails(product) {
   container.innerHTML = `
         <div class="product-layout">
             <div class="product-gallery">
-                <div class="product-image" id="mainProductImage">
-                    ${product.icon || "🍪"}
-                </div>
+                  <div class="product-image" onclick="goToProductDetails(${product.id})">
+  <img src="${product.image_url|| 'images/.png'}"
+       alt="${product.item_name}"
+       loading="lazy"
+       onload="this.parentElement.classList.add('loaded')"
+       onerror="this.src='images/placeholder.png'; this.classList.add('image-error');" />
+</div>
                 <div class="product-thumbnails">
                     <div class="thumbnail active" onclick="changeProductImage('${product.icon || "🍪"}')">
                         ${product.icon || "🍪"}
@@ -280,13 +284,17 @@ function renderRelatedProducts(products) {
     .map(
       (product) => `
         <div class="product-card" onclick="goToProduct(${product.id})">
-            <div class="product-image">
-                ${product.icon || "🍪"}
-            </div>
+            <div class="product-image" onclick="goToProductDetails(${product.id})">
+            <img src="${product.image_url || 'images/placeholder.png'}"
+                 alt="${product.item_name}"
+                 loading="lazy"
+                 onload="this.parentElement.classList.add('loaded')"
+                 onerror="this.src='images/placeholder.png'; this.classList.add('image-error');" />
+          </div>
             <div class="product-info">
                 <h3>${product.item_name}</h3>
                 <p class="product-description">${(product.description || "").substring(0, 80)}...</p>
-                <div class="product-price">₹${product.price_01?.toFixed(2) || "N/A"}</div>
+                <div class="product-price">₹${product.max_price?.toFixed(2) || "N/A"}</div>
                 <button class="add-to-cart" onclick="event.stopPropagation(); addToCart(${product.id})">
                     <i class="fas fa-plus"></i>
                 </button>

@@ -25,25 +25,29 @@ def product_details(request: Request):
 def get_all_products(db: Session = Depends(get_db)):
     try:
         products = db.query(Product).all()
-
-        if not products:
-            return []
-
         product_list = []
+
         for p in products:
-            # Filter out None values before taking max
-            price_list = [p.price_01, p.price_02, p.price_03, p.price_04]
-            valid_prices = [price for price in price_list if price is not None]
-            
-            max_price = max(valid_prices) if valid_prices else 0  # fallback to 0 or custom default
+            variants = []
+            if p.price_01 is not None:
+                variants.append({"packing": p.packing_01 or "Var 1", "price": p.price_01})
+            if p.price_02 is not None:
+                variants.append({"packing": p.packing_02 or "Var 2", "price": p.price_02})
+            if p.price_03 is not None:
+                variants.append({"packing": p.packing_03 or "Var 3", "price": p.price_03})
+            if p.price_04 is not None:
+                variants.append({"packing": p.packing_04 or "Var 4", "price": p.price_04})
+
+            max_price = max((v["price"] for v in variants), default=0)
 
             product_list.append({
                 "id": p.id,
                 "item_name": p.item_name,
                 "category": p.category,
-                "price_01": max_price,
                 "description": p.description,
-                "image_url": p.imagesrc
+                "image_url": p.imagesrc,
+                "variants": variants,
+                "max_price": max_price,
             })
 
         return product_list
@@ -51,6 +55,7 @@ def get_all_products(db: Session = Depends(get_db)):
     except Exception as e:
         print("Error getting products:", str(e))
         raise HTTPException(status_code=500, detail="Failed to fetch products")
+
 
 @router.get("/api/products/{product_id}")
 def get_product(product_id: int, db: Session = Depends(get_db)):

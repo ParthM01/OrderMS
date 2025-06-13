@@ -386,6 +386,7 @@ function loadCart() {
   `
 }
 
+
 // Render selected address
 function renderSelectedAddress() {
   return `
@@ -421,19 +422,36 @@ function renderNoAddress() {
     </div>
   `
 }
+async function fetchUserAddresses() {
+  try {
+    const response = await fetch('/api/user/addresses'); // Adjust the API route as per your backend
+    if (!response.ok) throw new Error("Failed to fetch addresses");
 
-// Render saved addresses
+    userAddresses = await response.json();
+    document.getElementById("savedAddressesContainer").innerHTML = renderSavedAddresses();
+  } catch (error) {
+    console.error("Error fetching user addresses:", error);
+    document.getElementById("savedAddressesContainer").innerHTML = `
+      <div class="no-saved-addresses">
+        <i class="fas fa-map-marker-alt"></i>
+        <p>Error fetching addresses</p>
+      </div>
+    `;
+  }
+}
+
+
 function renderSavedAddresses() {
-  if (!userDetails.addresses || userDetails.addresses.length === 0) {
+  if (!userAddresses || userAddresses.length === 0) {
     return `
       <div class="no-saved-addresses">
         <i class="fas fa-map-marker-alt"></i>
         <p>No saved addresses</p>
       </div>
-    `
+    `;
   }
 
-  return userDetails.addresses
+  return userAddresses
     .map(
       (address, index) => `
     <div class="saved-address-item ${selectedAddress && selectedAddress.id === address.id ? "selected" : ""}" onclick="selectAddress(${index})">
@@ -459,8 +477,9 @@ function renderSavedAddresses() {
     </div>
   `,
     )
-    .join("")
+    .join("");
 }
+
 
 // Address management functions with improved scroll handling
 function openAddressModal() {

@@ -555,37 +555,34 @@ function renderProducts(products) {
 
   container.innerHTML = products
     .map((product) => {
-      // Use provided variants or fallback to price_01 and price_02
-      const variants =
+      // Use provided variants or fallback
+      let variants =
         product.variants && product.variants.length > 0
           ? product.variants
           : [
-              { packing: "250g", price: product.price_01 || 100 },
-              { packing: "500g", price: product.price_02 || product.price_01 || 100 },
+              { packing: "250g", price: product.price_2 || product.max_price || 0 },
+              { packing: "500g", price: product.price_3 || product.price_2 || product.max_price || 0 }
             ];
 
-      // Find highest and lowest price variant
-      const highestVariant = variants.reduce((max, v) =>
-        v.price > max.price ? v : max
-      );
-      const minPrice = Math.min(...variants.map((v) => v.price));
+      // Get the highest price (without sorting the variants)
+      const maxPrice = Math.max(...variants.map((v) => v.price));
 
       return `
         <div class="product-card" data-category="${product.category || "uncategorized"}" data-product-id="${product.id}">
-<div class="product-image" onclick="goToProductDetails(${product.id})">
-  <img src="${product.image_url|| 'images/.png'}"
-       alt="${product.item_name}"
-       loading="lazy"
-       onload="this.parentElement.classList.add('loaded')"
-       onerror="this.src='images/placeholder.png'; this.classList.add('image-error');" />
-</div>
+          <div class="product-image" onclick="goToProductDetails(${product.id})">
+            <img src="${product.image_url || 'images/placeholder.png'}"
+                 alt="${product.item_name}"
+                 loading="lazy"
+                 onload="this.parentElement.classList.add('loaded')"
+                 onerror="this.src='images/placeholder.png'; this.classList.add('image-error');" />
+          </div>
 
           <div class="product-info">
             <h3 onclick="goToProductDetails(${product.id})">${product.item_name || "Unnamed Product"}</h3>
             
             <div class="product-price-container">
-              <div class="product-price" id="price-${product.id}">₹${highestVariant.price.toFixed(2)}</div>
-              <div class="price-info">for ${highestVariant.packing}</div>
+              <div class="product-price" id="price-${product.id}">₹${maxPrice.toFixed(2)}</div>
+              <div class="price-info">Max Price</div>
             </div>
             
             <p class="product-description" onclick="goToProductDetails(${product.id})">${product.description || "Delicious snack made with premium ingredients"}</p>
@@ -594,8 +591,8 @@ function renderProducts(products) {
               <select class="variants-dropdown" id="variant-${product.id}" onclick="event.stopPropagation();" onchange="updateProductPrice(${product.id}, this.value, this.options[this.selectedIndex].text)">
                 ${variants
                   .map(
-                    (v, i) => `
-                      <option value="${v.price}" ${i === 0 ? "selected" : ""}>
+                    (v) => `
+                      <option value="${v.price}">
                         ${v.packing} - ₹${v.price.toFixed(2)}
                       </option>
                     `
@@ -618,7 +615,7 @@ function renderProducts(products) {
     window.location.href = `/product-details.html?id=${productId}`;
   };
 
-  // Update the displayed price and selected variant info
+  // Update displayed price and variant info
   window.updateProductPrice = (productId, price, variantText) => {
     const priceElement = document.getElementById(`price-${productId}`);
     if (priceElement) {
