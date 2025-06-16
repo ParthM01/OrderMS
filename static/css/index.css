@@ -956,7 +956,9 @@ body.modal-open {
   margin-right: 1rem;
   font-size: 2.5rem;
   border: 2px solid #e9ecef;
+  overflow: hidden;
 }
+
 
 .cart-item-details {
   flex-grow: 1;

@@ -767,6 +767,7 @@ window.addToCart = async (productId) => {
         price: finalPrice,
         description: product.description,
         icon: product.icon || "🍪",
+        image: product.image_url,
         category: product.category,
         quantity: 1,
         variant: finalVariant,

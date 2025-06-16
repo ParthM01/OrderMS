@@ -78,8 +78,8 @@
                     <!-- Auth Container -->
                     <div class="auth-container">
                         <a href="#" class="nav-link" id="authButton" onclick="toggleAuth()">
-                            <i class="fas fa-user"></i>
-                            <span id="authText">Sign In</span>
+                            <i class="fas fa-user" ></i>
+                            <span id="authText"  >Sign In</span>
                         </a>
                         
                         <!-- Logout Dropdown -->
@@ -144,14 +144,10 @@
         </div>
     </section>
 
-    <!-- Filters Section -->
-    <section class="filters-section">
-        <div class="filters-container">
-            <div class="filters-header">
-                <h2 class="filters-title">Find Your Perfect Snack</h2>
-                <p class="filters-subtitle">Use our smart filters to discover exactly what you're craving</p>
-            </div>
-
+    
+    <!-- Products Section -->
+    <section class="products-section">
+        
             <!-- Quick Filter Buttons -->
             <div class="quick-filters">
                 <button class="filter-btn active" onclick="setQuickFilter('all')">
@@ -172,60 +168,10 @@
                 <button class="filter-btn" onclick="setQuickFilter('snacks')">
                     <i class="fas fa-cookie-bite"></i> Snacks
                 </button>
-            </div>
-
-            <!-- Advanced Filters -->
-            <div class="advanced-filters">
-                <div class="filters-grid">
-                    <div class="filter-group">
-                        <label for="categoryFilter">
-                            <i class="fas fa-tags"></i> Category
-                        </label>
-                        <select id="categoryFilter" onchange="applyFilters()">
-                            <option value="">All Categories</option>
-                            <option value="chewda">Chewda</option>
-                            <option value="laddu">Laddu</option>
-                            <option value="namkeen">Namkeen</option>
-                            <option value="sweets">Sweets</option>
-                            <option value="snacks">Snacks</option>
-                        </select>
-                    </div>
-
-                    <div class="filter-group">
-                        <label for="priceFilter">
-                            <i class="fas fa-rupee-sign"></i> Price Range
-                        </label>
-                        <select id="priceFilter" onchange="applyFilters()">
-                            <option value="">All Prices</option>
-                            <option value="0-100">₹0 - ₹100</option>
-                            <option value="100-200">₹100 - ₹200</option>
-                            <option value="200-500">₹200 - ₹500</option>
-                            <option value="500-1000">₹500 - ₹1000</option>
-                            <option value="1000-+">₹1000+</option>
-                        </select>
-                    </div>
-
-                    <div class="filter-group">
-                        <label for="sortFilter">
-                            <i class="fas fa-sort"></i> Sort By
-                        </label>
-                        <select id="sortFilter" onchange="applyFilters()">
-                            <option value="">Default</option>
-                            <option value="price-low">Price: Low to High</option>
-                            <option value="price-high">Price: High to Low</option>
-                            <option value="name">Name: A to Z</option>
-                            <option value="popular">Most Popular</option>
-                        </select>
-                    </div>
-
-                    
+            </div>  
                 </div>
             </div>
         </div>
-    </section>
-
-    <!-- Products Section -->
-    <section class="products-section">
         <div class="products-container">
             <div class="products-header">
                 <div class="products-count">

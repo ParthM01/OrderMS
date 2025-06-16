@@ -680,10 +680,11 @@ async function addToCart(productId, quantity = 1) {
         name: product.item_name,
         price: finalPrice,
         quantity: quantity,
-        icon: product.icon || "🍪",
+        image: product.image_url || null,
         description: product.description,
         variant: finalVariant,
-        originalPrice: finalPrice + 20, // Mock original price for savings calculation
+        originalPrice: finalPrice + 20,
+         // Mock original price for savings calculation
       })
     }
 
@@ -828,54 +829,62 @@ function updateCartDisplay() {
  * Creates HTML template for each cart item
  */
 function renderCartItems() {
-  const cartItemsContainer = document.getElementById("cartItems")
-  if (!cartItemsContainer) return
+  const cartItemsContainer = document.getElementById("cartItems");
+  if (!cartItemsContainer) return;
 
-  const cart = getCartFromStorage()
-  cartItemsContainer.innerHTML = ""
+  const cart = getCartFromStorage();
+  cartItemsContainer.innerHTML = "";
 
   if (cart.length === 0) {
-    // Show empty cart message
     cartItemsContainer.innerHTML = `
-            <div style="text-align: center; padding: 3rem;">
-                <i class="fas fa-shopping-cart" style="font-size: 4rem; color: #ddd; margin-bottom: 1rem;"></i>
-                <p style="color: #666; font-size: 1.1rem;">Your cart is empty</p>
-            </div>
-        `
-    return
+      <div style="text-align: center; padding: 3rem;">
+        <i class="fas fa-shopping-cart" style="font-size: 4rem; color: #ddd; margin-bottom: 1rem;"></i>
+        <p style="color: #666; font-size: 1.1rem;">Your cart is empty</p>
+      </div>
+    `;
+    return;
   }
 
-  // Render each cart item using template
   cart.forEach((item) => {
-    const cartItemElement = document.createElement("div")
-    cartItemElement.className = "cart-item"
-    cartItemElement.innerHTML = `
-            <div class="cart-item-image">${item.icon}</div>
-            <div class="cart-item-details">
-                <div class="cart-item-title">${item.name}</div>
-                <div class="cart-item-variant">Variant: ${item.variant || "250g"}</div>
-                <div class="cart-item-price">
-                    <div class="cart-item-pay">You Pay ₹${item.price.toFixed(2)}</div>
-                    <div class="cart-item-save">You Save ₹${((item.originalPrice || item.price + 20) - item.price).toFixed(2)}</div>
-                </div>
-                <div class="cart-item-actions">
-                    <div class="quantity-control">
-                        <button class="quantity-btn remove" onclick="updateItemQuantity(${item.id}, ${item.quantity - 1})">
-                            ${item.quantity === 1 ? '<i class="fas fa-trash"></i>' : "-"}
-                        </button>
-                        <input type="text" class="quantity-input" value="${item.quantity}" readonly>
-                        <button class="quantity-btn" onclick="updateItemQuantity(${item.id}, ${item.quantity + 1})">+</button>
-                    </div>
-                    <button class="remove-item" onclick="removeFromCart(${item.id})">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            </div>
-        `
+    const quantity = item.quantity || 1;
+    const variantLabel = item.variant?.includes("gm") ? item.variant : `${item.variant || "250"}gm`;
+    const totalPrice = (item.price * quantity).toFixed(2);
+    const originalTotal = ((item.originalPrice || item.price + 20) * quantity).toFixed(2);
+    const youSave = (originalTotal - totalPrice).toFixed(2);
 
-    cartItemsContainer.appendChild(cartItemElement)
-  })
+    const cartItemElement = document.createElement("div");
+    cartItemElement.className = "cart-item";
+
+    cartItemElement.innerHTML = `
+       <div class="cart-item-image">
+        <img src="${item.image || 'fallback.jpg'}" alt="${item.name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 10px;" />
+      </div>
+      <div class="cart-item-details">
+        <div class="cart-item-title">${item.name}</div>
+        <div class="cart-item-variant">Variant: ${variantLabel}</div>
+        <div class="cart-item-price">
+          <div class="cart-item-pay">You Pay ₹${totalPrice}</div>
+          <div class="cart-item-save">You Save ₹${youSave}</div>
+        </div>
+        <div class="cart-item-actions">
+          <div class="quantity-control">
+            <button class="quantity-btn remove" onclick="event.stopPropagation(); updateItemQuantity(${item.id}, ${quantity - 1})">
+              ${quantity === 1 ? '<i class="fas fa-trash"></i>' : "-"}
+            </button>
+            <input type="text" class="quantity-input" value="${quantity}" readonly>
+            <button class="quantity-btn" onclick="event.stopPropagation(); updateItemQuantity(${item.id}, ${quantity + 1})">+</button>
+          </div>
+          <button class="remove-item" onclick="event.stopPropagation(); removeFromCart(${item.id})">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+    `;
+
+    cartItemsContainer.appendChild(cartItemElement);
+  });
 }
+
 
 // ==========================================
 // UTILITY FUNCTIONS

@@ -105,9 +105,9 @@ async function addToCart(productId, productData) {
 
     if (existingItem) {
       // If item exists, increase quantity instead of adding duplicate
-      await updateQuantity(productId, 1)
-      showToast(`${productData.name} quantity increased`, "success")
-      return
+      await updateQuantity(productId, 1);
+      showToast(`${productData.name} quantity increased`, "success");
+      return;
     }
 
     const response = await fetch("/cart/add", {
@@ -122,13 +122,14 @@ async function addToCart(productId, productData) {
       }),
     })
 
-    if (!response.ok) throw new Error("Failed to add item to cart")
+    if (!response.ok) throw new Error("Failed to add item to cart");
 
-    await fetchCartFromBackend()
-    showToast(`${productData.name} added to cart`, "success")
+    await fetchCartFromBackend();
+    showToast(`${productData.name} added to cart`, "success");
+
   } catch (error) {
     console.error("Error adding to cart:", error)
-
+  
     // Fallback to local storage
     const existingItem = cart.find((item) => item.id === productId)
     if (existingItem) {
@@ -149,7 +150,6 @@ async function addToCart(productId, productData) {
   }
 }
 
-// Load cart content with address section
 function loadCart() {
   const cartContent = document.getElementById("cartContent")
 
@@ -171,137 +171,120 @@ function loadCart() {
 
   // Calculate totals
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  const savings = cart.reduce((sum, item) => sum + (item.original_price - item.price) * item.quantity, 0)
+  const savings = cart.reduce((sum, item) => sum + ((item.original_price || (item.price + 20)) - item.price) * item.quantity, 0)
   const shipping = subtotal >= 500 ? 0 : 50
   const total = subtotal + shipping
 
   cartContent.innerHTML = `
-    <div class="cart-layout">
-      <div class="cart-main-section">
-        <!-- Cart Items Section -->
-        <div class="cart-items-section">
-          <div class="cart-header">
-            <h2 class="cart-title">My Cart (${cart.reduce((sum, item) => sum + item.quantity, 0)} item${cart.reduce((sum, item) => sum + item.quantity, 0) !== 1 ? "s" : ""})</h2>
-            <button class="remove-all-btn" onclick="clearCart()">
-              <i class="fas fa-trash"></i>
-              Remove all
-            </button>
-          </div>
-          
-          <div class="cart-items">
-            ${cart
-              .map(
-                (item) => `
-                <div class="cart-item">
-                  <div class="item-image">
-                    ${
-                      item.image
-                        ? `<img src="${item.image}" alt="${item.name || item.item_name}">`
-                        : `<div class="placeholder">${item.icon || "🍪"}</div>`
-                    }
-                  </div>
-                  
-                  <div class="item-details">
-                    <div class="item-name">${item.name || item.item_name}</div>
-                    <div class="item-variant">Variant: ${item.variant || "1U"}</div>
-                  </div>
-                  
-                  <div class="item-pricing">
-                    <div class="item-price">₹${item.price}</div>
-                    ${
-                      item.original_price && item.original_price > item.price
-                        ? `<div class="item-savings">₹${item.original_price - item.price} saved</div>`
-                        : ""
-                    }
-                  </div>
-                  
-                  <div class="quantity-controls">
-                    <button class="quantity-btn decrease" onclick="updateQuantity(${item.id}, -1)">
-                      <i class="fas fa-trash"></i>
-                    </button>
-                    <input type="number" class="quantity-display" value="${item.quantity}" readonly>
-                    <button class="quantity-btn" onclick="updateQuantity(${item.id}, 1)">
-                      <i class="fas fa-plus"></i>
-                    </button>
-                  </div>
-                </div>
-              `,
-              )
-              .join("")}
-          </div>
+  <div class="cart-layout">
+    <div class="cart-main-section">
+      <!-- Cart Items Section -->
+      <div class="cart-items-section">
+        <div class="cart-header">
+          <h2 class="cart-title">
+            My Cart (${cart.reduce((sum, item) => sum + item.quantity, 0)} item${cart.reduce((sum, item) => sum + item.quantity, 0) !== 1 ? "s" : ""})
+          </h2>
+          <button class="remove-all-btn" onclick="clearCart()">
+            <i class="fas fa-trash"></i>
+            Remove all
+          </button>
         </div>
 
-        <!-- Address Section -->
-        <div class="address-section">
-          <div class="address-header">
-            <h3 class="address-title">
-              <i class="fas fa-map-marker-alt"></i>
-              Delivery Address
-            </h3>
-            <button class="change-address-btn" onclick="openAddressModal()">
-              <i class="fas fa-edit"></i>
-              ${selectedAddress ? "Change" : "Add"} Address
-            </button>
-          </div>
-          
-          <div class="address-content">
-            ${selectedAddress ? renderSelectedAddress() : renderNoAddress()}
-          </div>
-        </div>
-      </div>
-      
-      <!-- Price Summary -->
-      <div class="price-summary">
-        <h3 class="summary-title">Price Summary</h3>
-        
-        <div class="summary-row">
-          <span>Cart Total</span>
-          <span class="amount">₹${subtotal.toFixed(2)}</span>
-        </div>
-        
-        <div class="summary-row">
-          <span>Delivery Charge <i class="fas fa-info-circle" title="Free delivery on orders above ₹500"></i></span>
-          <span class="amount ${shipping === 0 ? "" : "extra"}">
-            ${shipping === 0 ? "Free" : "+ ₹" + shipping.toFixed(2)}
-          </span>
-        </div>
-        
-        ${
-          savings > 0
-            ? `
-            <div class="summary-row">
-              <span>Savings</span>
-              <span class="amount savings">₹${savings.toFixed(2)}</span>
+        <div class="cart-items">
+          ${cart.map(item => `
+            <div class="cart-item">
+              <div class="item-image">
+                ${item.image
+                  ? `<img src="${item.image}" alt="${item.name || item.item_name}">`
+                  : `<div class="placeholder">${item.icon || "🍪"}</div>`}
+              </div>
+
+              <div class="item-details">
+                <div class="item-name">${item.name || item.item_name}</div>
+                <div class="item-variant">Variant: ${item.variant || "250gm"}${item.variant && !item.variant.includes("gm") ? "gm" : ""}</div>
+              </div>
+
+              <div class="item-pricing">
+                <div class="item-price">₹${(item.price * item.quantity).toFixed(2)}</div>
+                ${item.original_price && item.original_price > item.price
+                  ? `<div class="item-savings">₹${((item.original_price - item.price) * item.quantity).toFixed(2)} saved</div>`
+                  : ""}
+              </div>
+
+              <div class="quantity-controls">
+                <button class="quantity-btn decrease" onclick="updateQuantity(${item.id}, -1)">
+                  ${item.quantity === 1 ? '<i class="fas fa-trash"></i>' : "-"}
+                </button>
+                <input type="number" class="quantity-display" value="${item.quantity}" readonly>
+                <button class="quantity-btn" onclick="updateQuantity(${item.id}, 1)">
+                  <i class="fas fa-plus"></i>
+                </button>
+              </div>
             </div>
-          `
-            : ""
-        }
-        
-        <div class="summary-row total">
-          <span>Total Amount</span>
-          <span class="amount">₹${total.toFixed(2)}</span>
+          `).join("")}
         </div>
-        
-        <button class="checkout-btn" onclick="proceedToCheckout()" ${subtotal < 500 || !selectedAddress ? "disabled" : ""}>
-          ${subtotal < 500 ? "Minimum order ₹500" : !selectedAddress ? "Add delivery address" : "Proceed to Checkout"}
-        </button>
-        
-        ${
-          subtotal < 500
-            ? `
-            <p style="text-align: center; color: #ff6b6b; font-size: 0.85rem; margin-top: 0.5rem;">
-              Add ₹${(500 - subtotal).toFixed(2)} more to place order
-            </p>
-          `
-            : !selectedAddress
-              ? `
-            <p style="text-align: center; color: #ff6b6b; font-size: 0.85rem; margin-top: 0.5rem;">
-              Please add a delivery address to continue
-            </p>
-          `
-              : ""
-        }
       </div>
+
+      <!-- Address Section -->
+      <div class="address-section">
+        <div class="address-header">
+          <h3 class="address-title">
+            <i class="fas fa-map-marker-alt"></i>
+            Delivery Address
+          </h3>
+          <button class="change-address-btn" onclick="openAddressModal()">
+            <i class="fas fa-edit"></i>
+            ${selectedAddress ? "Change" : "Add"} Address
+          </button>
+        </div>
+
+        <div class="address-content">
+          ${selectedAddress ? renderSelectedAddress() : renderNoAddress()}
+        </div>
+      </div>
+    </div>
+
+    <!-- Price Summary -->
+    <div class="price-summary">
+      <h3 class="summary-title">Price Summary</h3>
+
+      <div class="summary-row">
+        <span>Cart Total</span>
+        <span class="amount">₹${subtotal.toFixed(2)}</span>
+      </div>
+
+      <div class="summary-row">
+        <span>Delivery Charge <i class="fas fa-info-circle" title="Free delivery on orders above ₹500"></i></span>
+        <span class="amount ${shipping === 0 ? "" : "extra"}">
+          ${shipping === 0 ? "Free" : "+ ₹" + shipping.toFixed(2)}
+        </span>
+      </div>
+
+      ${savings > 0 ? `
+        <div class="summary-row">
+          <span>Savings</span>
+          <span class="amount savings">₹${savings.toFixed(2)}</span>
+        </div>
+      ` : ""}
+
+      <div class="summary-row total">
+        <span>Total Amount</span>
+        <span class="amount">₹${total.toFixed(2)}</span>
+      </div>
+
+      <button class="checkout-btn" onclick="proceedToCheckout()" ${subtotal < 500 || !selectedAddress ? "disabled" : ""}>
+        ${subtotal < 500 ? "Minimum order ₹500" : !selectedAddress ? "Add delivery address" : "Proceed to Checkout"}
+      </button>
+
+      ${subtotal < 500 ? `
+        <p style="text-align: center; color: #ff6b6b; font-size: 0.85rem; margin-top: 0.5rem;">
+          Add ₹${(500 - subtotal).toFixed(2)} more to place order
+        </p>
+      ` : !selectedAddress ? `
+        <p style="text-align: center; color: #ff6b6b; font-size: 0.85rem; margin-top: 0.5rem;">
+          Please add a delivery address to continue
+        </p>
+      ` : ""}
     </div>
 
     <!-- Address Modal -->
@@ -313,7 +296,7 @@ function loadCart() {
             <i class="fas fa-times"></i>
           </button>
         </div>
-        
+
         <div class="address-modal-body">
           <!-- User Details Form -->
           <div class="user-details-section">
@@ -383,7 +366,8 @@ function loadCart() {
         </div>
       </div>
     </div>
-  `
+  </div>
+`;
 }
 
 
@@ -422,76 +406,59 @@ function renderNoAddress() {
     </div>
   `
 }
-async function fetchUserAddresses() {
-  try {
-    const response = await fetch('/api/user/addresses'); // Adjust the API route as per your backend
-    if (!response.ok) throw new Error("Failed to fetch addresses");
 
-    userAddresses = await response.json();
-    document.getElementById("savedAddressesContainer").innerHTML = renderSavedAddresses();
-  } catch (error) {
-    console.error("Error fetching user addresses:", error);
-    document.getElementById("savedAddressesContainer").innerHTML = `
-      <div class="no-saved-addresses">
-        <i class="fas fa-map-marker-alt"></i>
-        <p>Error fetching addresses</p>
-      </div>
-    `;
-  }
-}
-
-
+// Render saved addresses
 function renderSavedAddresses() {
-  if (!userAddresses || userAddresses.length === 0) {
+  if (!userDetails.addresses || userDetails.addresses.length === 0) {
     return `
       <div class="no-saved-addresses">
         <i class="fas fa-map-marker-alt"></i>
         <p>No saved addresses</p>
       </div>
-    `;
+    `
   }
 
-  return userAddresses
+  return userDetails.addresses
     .map(
       (address, index) => `
-    <div class="saved-address-item ${selectedAddress && selectedAddress.id === address.id ? "selected" : ""}" onclick="selectAddress(${index})">
-      <div class="address-item-content">
-        <div class="address-type-badge ${address.type}">
-          <i class="fas fa-${address.type === "home" ? "home" : address.type === "office" ? "building" : "map-marker-alt"}"></i>
-          ${address.type.charAt(0).toUpperCase() + address.type.slice(1)}
+        <div class="saved-address-item ${selectedAddress && selectedAddress.id === address.id ? "selected" : ""}" onclick="selectAddress(${index})">
+          <div class="address-item-content">
+            <div class="address-type-badge ${address.type}">
+              <i class="fas fa-${address.type === "home" ? "home" : address.type === "office" ? "building" : "map-marker-alt"}"></i>
+              ${address.type.charAt(0).toUpperCase() + address.type.slice(1)}
+            </div>
+            <div class="address-details">
+              <p class="address-line">${address.line1}</p>
+              ${address.line2 ? `<p class="address-line">${address.line2}</p>` : ""}
+              <p class="address-line">${address.city}, ${address.state} - ${address.pincode}</p>
+            </div>
+          </div>
+          <div class="address-actions">
+            <button class="edit-address-btn" onclick="editAddress(${index}); event.stopPropagation();">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="delete-address-btn" onclick="deleteAddress(${index}); event.stopPropagation();">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
         </div>
-        <div class="address-details">
-          <p class="address-line">${address.line1}</p>
-          ${address.line2 ? `<p class="address-line">${address.line2}</p>` : ""}
-          <p class="address-line">${address.city}, ${address.state} - ${address.pincode}</p>
-        </div>
-      </div>
-      <div class="address-actions">
-        <button class="edit-address-btn" onclick="editAddress(${index}); event.stopPropagation();">
-          <i class="fas fa-edit"></i>
-        </button>
-        <button class="delete-address-btn" onclick="deleteAddress(${index}); event.stopPropagation();">
-          <i class="fas fa-trash"></i>
-        </button>
-      </div>
-    </div>
-  `,
+      `,
     )
-    .join("");
+    .join("")
 }
 
-
-// Address management functions with improved scroll handling
+// Address management functions with FIXED scroll handling
 function openAddressModal() {
   const modal = document.getElementById("addressModal")
   modal.classList.add("active")
   document.body.classList.add("modal-open")
 
-  // Prevent background scroll
+  // Store current scroll position and freeze scroll
   const scrollY = window.scrollY
-  document.body.style.position = "fixed"
+  document.body.style.position = 'fixed'
   document.body.style.top = `-${scrollY}px`
-  document.body.style.width = "100%"
+  document.body.style.width = '100%'
+  document.body.dataset.scrollY = scrollY.toString()
 }
 
 function closeAddressModal() {
@@ -500,14 +467,14 @@ function closeAddressModal() {
   document.body.classList.remove("modal-open")
 
   // Restore scroll position
-  const scrollY = document.body.style.top
-  document.body.style.position = ""
-  document.body.style.top = ""
-  document.body.style.width = ""
-  window.scrollTo(0, Number.parseInt(scrollY || "0") * -1)
+  const scrollY = parseInt(document.body.dataset.scrollY || '0')
+  document.body.style.position = ''
+  document.body.style.top = ''
+  document.body.style.width = ''
+  delete document.body.dataset.scrollY
+  window.scrollTo(0, scrollY)
 }
 
-// Enhanced address addition with database integration
 async function addNewAddress() {
   // Get user details and update userDetails object
   const name = document.getElementById("userName").value.trim()
@@ -550,9 +517,9 @@ async function addNewAddress() {
   }
 
   // Update user details
-  userDetails.name = name
+  // userDetails.name = name
   userDetails.email = email
-  userDetails.phone = phone
+  // userDetails.phone = phone
 
   // Create new address
   const newAddress = {
@@ -563,7 +530,7 @@ async function addNewAddress() {
     state,
     pincode,
     type,
-    createdAt: new Date().toISOString(),
+    createdAt: new Date().toISOString()
   }
 
   // Add to addresses array
@@ -576,12 +543,10 @@ async function addNewAddress() {
     // Save to database
     const response = await fetch("/api/user/address", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        userDetails: userDetails,
-        address: newAddress,
+        phone: userDetails.phone,
+        address: newAddress
       }),
     })
 
@@ -691,7 +656,6 @@ async function deleteAddress(index, showConfirm = true) {
   }
 }
 
-// Update quantity - automatically reloads page when item is removed
 async function updateQuantity(productId, change) {
   try {
     const response = await fetch("/cart", {
@@ -703,42 +667,42 @@ async function updateQuantity(productId, change) {
         product_id: productId,
         change: change,
       }),
-    })
+    });
 
-    if (!response.ok) throw new Error("Failed to update cart")
+    if (!response.ok) throw new Error("Failed to update cart");
 
-    // Check if item was removed (quantity became 0)
-    const item = cart.find((item) => item.id === productId)
-    if (item && item.quantity + change <= 0) {
-      showToast(`${item.name || item.item_name} removed from cart`, "success")
-      // Auto-reload page after a short delay
-      setTimeout(() => {
-        window.location.reload()
-      }, 1000)
+    // Reload updated cart
+    await fetchCartFromBackend();
+
+    const item = cart.find((item) => item.id === productId);
+
+    if (!item) {
+      showToast("Item removed from cart", "success");
     } else {
-      await fetchCartFromBackend()
-      showToast("Cart updated", "success")
+      showToast("Cart updated", "success");
     }
+
   } catch (error) {
-    console.error("Error updating cart:", error)
-    const item = cart.find((item) => item.id === productId)
+    console.error("Error updating cart:", error);
+
+    // Fallback for client-side update
+    const item = cart.find((item) => item.id === productId);
     if (item) {
-      item.quantity += change
+      item.quantity += change;
       if (item.quantity <= 0) {
-        cart = cart.filter((cartItem) => cartItem.id !== productId)
-        showToast(`${item.name || item.item_name} removed from cart`, "success")
-        // Auto-reload page after a short delay
-        setTimeout(() => {
-          window.location.reload()
-        }, 1000)
+        cart = cart.filter((i) => i.id !== productId);
+        showToast("Item removed from cart", "success");
       } else {
-        localStorage.setItem("cart", JSON.stringify(cart))
-        loadCart()
-        updateCartCount()
+        showToast("Cart updated ", "info");
       }
+
+      localStorage.setItem("cart", JSON.stringify(cart));
+      loadCart();
+      updateCartCount();
     }
   }
 }
+
 
 // Clear entire cart - automatically reloads page
 async function clearCart() {
@@ -857,8 +821,9 @@ async function proceedToCheckout() {
 
           // Redirect to order confirmation page
           setTimeout(() => {
-            window.location.href = `/order-confirmation?order_id=${verifyResult.order_id}`
-          }, 2000)
+            window.location.href = `/order-confirmation?order_id=${verifyResult.order_id}`;
+          }, 2000);
+
         } else {
           showToast("Payment verification failed", "error")
         }
@@ -894,17 +859,18 @@ function showToast(message, type = "success") {
   setTimeout(() => toast.remove(), 3000)
 }
 
-// Pincode modal functions with improved scroll handling
+// Pincode modal functions with FIXED scroll handling
 function openPincodeModal() {
   const modal = document.getElementById("pincodeModal")
   modal.classList.add("active")
   document.body.classList.add("modal-open")
 
-  // Prevent background scroll
+  // Store current scroll position and freeze scroll
   const scrollY = window.scrollY
   document.body.style.position = "fixed"
   document.body.style.top = `-${scrollY}px`
   document.body.style.width = "100%"
+  document.body.dataset.scrollY = scrollY.toString()
 }
 
 function closePincodeModal() {
@@ -913,11 +879,12 @@ function closePincodeModal() {
   document.body.classList.remove("modal-open")
 
   // Restore scroll position
-  const scrollY = document.body.style.top
+  const scrollY = parseInt(document.body.dataset.scrollY || '0')
   document.body.style.position = ""
   document.body.style.top = ""
   document.body.style.width = ""
-  window.scrollTo(0, Number.parseInt(scrollY || "0") * -1)
+  delete document.body.dataset.scrollY
+  window.scrollTo(0, scrollY)
 }
 
 // Auth functions

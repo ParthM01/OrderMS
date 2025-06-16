@@ -7,7 +7,7 @@
         }
 
         body {
-            background: linear-gradient(135deg, #ff6b35, #f7931e);
+background: linear-gradient(135deg, #cccccc, #ffffff);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -65,7 +65,7 @@
 
         /* ===== LEFT PANEL ===== */
         .register-left {
-            background: linear-gradient(135deg, #ff6b35, #f7931e);
+  background: linear-gradient(135deg, #6a4c93 0%, #9b59b6 50%, #8e44ad 100%);
             color: white;
             padding: 3rem;
             display: flex;
@@ -145,7 +145,7 @@
             padding-right: 1rem;
             flex: 1;
             scrollbar-width: thin;
-            scrollbar-color: #ff6b35 #f1f1f1;
+            scrollbar-color: #9b59b6 #f1f1f1;
         }
 
         .register-right-content::-webkit-scrollbar {
@@ -158,7 +158,7 @@
         }
 
         .register-right-content::-webkit-scrollbar-thumb {
-            background: #ff6b35;
+            background: #9b59b6;
             border-radius: 10px;
         }
 
@@ -206,7 +206,7 @@
         }
 
         .form-section-title i {
-            color: #ff6b35;
+            color: #9b59b6;
         }
 
         .form-row {
@@ -268,7 +268,7 @@
         .form-group select:focus,
         .form-group textarea:focus {
             outline: none;
-            border-color: #ff6b35;
+            border-color: #9b59b6;
             box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
         }
 
@@ -285,7 +285,7 @@
         }
 
         .password-toggle:hover {
-            color: #ff6b35;
+            color: #6a4c93;
         }
 
         .password-strength {
@@ -314,7 +314,7 @@
 
         .strength-weak .strength-fill {
             width: 33%;
-            background: #ff4444;
+            background: #9b59b6;
         }
 
         .strength-medium .strength-fill {
@@ -343,7 +343,7 @@
             width: 18px;
             height: 18px;
             margin-top: 0.2rem;
-            accent-color: #ff6b35;
+            accent-color: #9b59b6;
         }
 
         .terms-checkbox label {
@@ -354,7 +354,7 @@
         }
 
         .terms-checkbox a {
-            color: #ff6b35;
+            color: #9b59b6;
             text-decoration: none;
             font-weight: 500;
         }
@@ -365,7 +365,7 @@
 
         /* ===== BUTTONS ===== */
         .register-btn {
-            background: linear-gradient(135deg, #ff6b35, #f7931e);
+  background: linear-gradient(135deg, #6a4c93 0%, #9b59b6 100%);
             color: white;
             border: none;
             padding: 15px;
@@ -437,7 +437,7 @@
 
         .otp-input:focus {
             outline: none;
-            border-color: #ff6b35;
+            border-color: #6a4c93;
             background: white;
             box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
         }
@@ -476,13 +476,13 @@
         }
 
         .phone-display i {
-            color: #ff6b35;
+            color: #9b59b6;
         }
 
         .timer {
             text-align: center;
             font-size: 1.1rem;
-            color: #ff6b35;
+            color: #9b59b6;
             margin: 1.5rem 0;
             font-weight: 600;
             display: flex;
@@ -496,7 +496,7 @@
         }
 
         .timer.warning {
-            color: #ff9800;
+            color: #9b59b6;
         }
 
         .timer.danger {
@@ -613,14 +613,14 @@
         }
 
         .login-link a {
-            color: #ff6b35;
+            color: #9b59b6;
             text-decoration: none;
             font-weight: 600;
             transition: color 0.3s ease;
         }
 
         .login-link a:hover {
-            color: #e55a2b;
+            color: #6a4c93;
             text-decoration: underline;
         }
 
@@ -657,7 +657,7 @@
         .resend-btn {
             background: none;
             border: none;
-            color: #ff6b35;
+            color: #6a4c93;
             font-size: 1rem;
             cursor: pointer;
             text-decoration: underline;
@@ -669,7 +669,7 @@
         }
 
         .resend-btn:hover {
-            color: #e55a2b;
+            color: #9b59b6;
         }
 
         .resend-btn:disabled {

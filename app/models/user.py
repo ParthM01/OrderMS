@@ -1,5 +1,5 @@
 #SQLAlchemy Models
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String,JSON
 from app.database.session import Base
 
 class User(Base):
@@ -11,6 +11,6 @@ class User(Base):
     email = Column(String(100), unique=True, index=True)
     mobile_number = Column(String(15))
     password = Column(String(255))
-    address = Column(String(255))
+    address = Column(JSON, default=list)
     customer_id = Column(String(20), unique=True, index=True)
     internal_id = Column(String(36), unique=True)

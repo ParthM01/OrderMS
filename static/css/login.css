@@ -6,7 +6,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #ff6b35, #f7931e);
+background: linear-gradient(135deg, #cccccc, #ffffff);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -57,7 +57,7 @@
         }
 
         .login-left {
-            background: linear-gradient(135deg, #ff6b35, #f7931e);
+  background: linear-gradient(135deg, #6a4c93 0%, #9b59b6 50%, #8e44ad 100%);
             color: white;
             padding: 3rem;
             display: flex;
@@ -161,7 +161,7 @@
 
         .form-group input:focus {
             outline: none;
-            border-color: #ff6b35;
+            border-color: "#9b59b6";
             background: white;
             box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
         }
@@ -174,15 +174,25 @@
             color: #999;
             margin-top: 12px;
         }
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
 
-        .password-toggle {
-            cursor: pointer;
-            transition: color 0.3s ease;
-        }
+.password-wrapper input[type="password"],
+.password-wrapper input[type="text"] {
+  padding-right: 40px; /* space for the eye icon */
+  width: 100%;
+}
 
-        .password-toggle:hover {
-            color: #ff6b35;
-        }
+.password-toggle {
+  position: absolute;
+  right: 10px;
+  cursor: pointer;
+  color: #888;
+}
+
 
         .form-options {
             display: flex;
@@ -203,7 +213,7 @@
         }
 
         .forgot-password {
-            color: #ff6b35;
+            color: #9b59b6 ;
             text-decoration: none;
             font-size: 0.9rem;
             transition: color 0.3s ease;
@@ -211,12 +221,12 @@
         }
 
         .forgot-password:hover {
-            color: #e55a2b;
+            color: #6a4c93 ;
             text-decoration: underline;
         }
 
         .login-btn {
-            background: linear-gradient(135deg, #ff6b35, #f7931e);
+  background: linear-gradient(135deg, #6a4c93 0%, #9b59b6 100%);
             color: white;
             border: none;
             padding: 15px;
@@ -260,14 +270,14 @@
         }
 
         .signup-link a {
-            color: #ff6b35;
+            color: #9b59b6;
             text-decoration: none;
             font-weight: 500;
             transition: color 0.3s ease;
         }
 
         .signup-link a:hover {
-            color: #e55a2b;
+            color: #6a4c93;
             text-decoration: underline;
         }
 
@@ -275,7 +285,7 @@
             position: absolute;
             top: 20px;
             left: 20px;
-            color: white;
+            color: #6a4c93;
             text-decoration: none;
             display: flex;
             align-items: center;
