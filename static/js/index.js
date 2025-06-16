@@ -197,6 +197,7 @@ function updateCartCount() {
   const cart = getCartFromStorage()
   const totalCount = cart.reduce((sum, item) => sum + item.quantity, 0)
   const cartCountElement = document.getElementById("cartCount")
+
   if (cartCountElement) {
     cartCountElement.textContent = totalCount
   }
@@ -207,6 +208,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const cart = getCartFromStorage()
   updateCartCount()
 })
+
+ function toggleLocationRow() {
+    const row = document.getElementById("mobileLocationRow");
+    row.classList.toggle("expanded");
+  }
 
 // ==========================================
 // PINCODE MANAGEMENT (BACKEND INTEGRATION)
