@@ -98,7 +98,7 @@
                         <div class="cart-section">
                             <div class="cart-icon" id="cartIcon">
                                 <i class="fas fa-shopping-cart"></i>
-                                <span class="cart-count" id="cartCount">0</span>
+    <span class="cart-count" id="desktopCartCount">0</span>
                             </div>
                         </div>
                     </div>
@@ -124,12 +124,12 @@
                         </button>
                         <div class="mobile-cart-icon" id="cartIcon">
                             <i id="viewFullCart" class="fas fa-shopping-cart"></i>
-                            <span class="mobile-cart-count" id="cartCount">0</span>
+    <span class="mobile-cart-count" id="mobileCartCount">0</span>
                         </div>
 
                     </div>
                 </div>
-
+<div class="mobile-header-group">
                 <!-- Mobile Search Row -->
                 <div class="mobile-search-row">
                     <div class="mobile-search-container">
@@ -157,9 +157,10 @@
                         </div>
                     </div>
                 </div>
-
+</div>
             </div>
         </div>
+
     </header>
 
     <!-- Cart Popup -->
@@ -190,7 +191,7 @@
             <div class="minimum-order">
                 Minimum Order Amount is ₹500
             </div>
-            <button class="view-cart-btn" id="viewFullCart">VIEW FULL CART</button>
+            <button class="view-cart-btn" id="viewFullCart" onclick="window.location.href='/cart'">VIEW FULL CART</button>
         </div>
     </div>
 
@@ -377,24 +378,25 @@
     </button>
 
     <script src="static/js/index.js"></script>
-    <script>
+<script>
   let lastScrollTop = 0;
-  const locationRow = document.getElementById("mobileLocationRow");
+  const headerGroup = document.querySelector(".mobile-header-group");
 
   window.addEventListener("scroll", function () {
     const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
 
-    if (currentScroll > lastScrollTop) {
-      // Scrolling down
-      locationRow.classList.add("hide-location-row");
+    if (currentScroll > lastScrollTop && currentScroll > 50) {
+      // Scrolling down → hide
+      headerGroup.classList.add("hide-header-group");
     } else {
-      // Scrolling up
-      locationRow.classList.remove("hide-location-row");
+      // Scrolling up → show
+      headerGroup.classList.remove("hide-header-group");
     }
 
     lastScrollTop = currentScroll <= 0 ? 0 : currentScroll;
   });
 </script>
+
 </body>
 
 </html>

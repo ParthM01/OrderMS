@@ -1,6 +1,4 @@
 # Pydantic Schemas
-
-
 from pydantic import BaseModel, EmailStr
 from typing import List, Optional
 from datetime import datetime
@@ -29,7 +27,6 @@ class Address(BaseModel):
     state: str
     pincode: str
     type: str 
-    createdAt: datetime
 
 class UserAddressUpdate(BaseModel):
     phone: str

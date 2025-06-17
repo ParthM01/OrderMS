@@ -814,10 +814,15 @@ function removeFromCart(productId) {
 function updateCartDisplay() {
   const cartTotals = calculateCartTotals()
 
-  // Update cart count
-  const cartCountElement = document.getElementById("cartCount")
-  if (cartCountElement) {
-    cartCountElement.textContent = cartTotals.count
+  // Update desktop and mobile cart counts
+  const desktopCartCountElement = document.getElementById("desktopCartCount")
+  const mobileCartCountElement = document.getElementById("mobileCartCount")
+
+  if (desktopCartCountElement) {
+    desktopCartCountElement.textContent = cartTotals.count
+  }
+  if (mobileCartCountElement) {
+    mobileCartCountElement.textContent = cartTotals.count
   }
 
   // Update cart popup totals
@@ -825,10 +830,17 @@ function updateCartDisplay() {
   const cartTotalElement = document.getElementById("cartTotal")
   const cartSavingsElement = document.getElementById("cartSavings")
 
-  if (cartItemCountElement) cartItemCountElement.textContent = cartTotals.count
-  if (cartTotalElement) cartTotalElement.textContent = `₹${cartTotals.totalPrice.toFixed(2)}`
-  if (cartSavingsElement) cartSavingsElement.textContent = `₹${cartTotals.totalSavings.toFixed(2)}`
+  if (cartItemCountElement) {
+    cartItemCountElement.textContent = cartTotals.count
+  }
+  if (cartTotalElement) {
+    cartTotalElement.textContent = `₹${cartTotals.totalPrice.toFixed(2)}`
+  }
+  if (cartSavingsElement) {
+    cartSavingsElement.textContent = `₹${cartTotals.totalSavings.toFixed(2)}`
+  }
 }
+
 
 /**
  * Render cart items in the cart popup

@@ -347,7 +347,7 @@ body.modal-open {
   position: relative;
   height: 500px;
   overflow: hidden;
-  margin-bottom: 4rem;
+  margin-bottom: 0rem;
 }
 
 .slider-container {
@@ -1390,47 +1390,30 @@ body.modal-open {
     font-weight: bold;
   }
 
-  /* Mobile Search Row */
-  .mobile-search-row {
-    padding: 0.8rem 1rem;
+ 
+
+/* ===== Mobile Location Row ===== */
+/* === Container for both rows === */
+/* --- Shared Header Group for Location + Search --- */
+.mobile-header-group {
+  position: relative;
+  z-index: 1000;
   background: white;
-  }
+  transition: all 0.3s ease;
+}
 
-  .mobile-search-container {
-    position: relative;
-    background: #f8f9fa;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    padding: 0.7rem 1rem;
-  }
+/* Hide header completely */
+.hide-header-group {
+  display: none;
+}
 
-  .mobile-search-icon {
-    color: #666;
-    margin-right: 0.8rem;
-  }
-
-  .mobile-search-input {
-    flex: 1;
-    border: none;
-    background: none;
-    outline: none;
-    font-size: 0.9rem;
-    color: #333;
-  }
-
-  .mobile-search-input::placeholder {
-    color: #999;
-  }
-
-  /* Mobile Location Row */
-  .mobile-location-row {
+/* --- Location Row Styles --- */
+.mobile-location-row {
   background: #e8f5e8;
   padding: 0.8rem 1rem;
   cursor: pointer;
 }
 
-/* --- Location Info --- */
 .mobile-location-info {
   display: flex;
   align-items: center;
@@ -1466,19 +1449,16 @@ body.modal-open {
   font-size: 0.7rem;
 }
 
-/* --- Delivery Info (hidden by default) --- */
 .mobile-delivery-info {
-  display: none; /* Hide by default */
+  display: none;
   font-size: 0.8rem;
   color: #333;
 }
 
-/* Show delivery info only when .expanded is present */
 .mobile-location-row.expanded .mobile-delivery-info {
   display: block;
 }
 
-/* --- Delivery Label and Time --- */
 .mobile-delivery-label {
   display: block;
   margin-bottom: 0.2rem;
@@ -1496,36 +1476,81 @@ body.modal-open {
   font-size: 0.7rem;
 }
 
-  /* Mobile Hero Slider */
-  .hero-slider {
-    height: 250px;
-    margin-bottom: 2rem;
-  }
+/* --- Search Row Styles --- */
+.mobile-search-row {
+  padding: 0.8rem 1rem;
+  background: white;
+}
 
-  .slide h1 {
-    font-size: 1.6rem;
-    margin-bottom: 0.8rem;
-  }
+.mobile-search-container {
+  position: relative;
+  background: #f8f9fa;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  padding: 0.7rem 1rem;
+}
 
-  .slide p {
-    font-size: 0.9rem;
-    margin-bottom: 1.5rem;
-  }
+.mobile-search-icon {
+  color: #666;
+  margin-right: 0.8rem;
+}
 
-  .cta-button {
-    padding: 10px 20px;
-    font-size: 0.9rem;
-  }
+.mobile-search-input {
+  flex: 1;
+  border: none;
+  background: none;
+  outline: none;
+  font-size: 0.9rem;
+  color: #333;
+}
 
-  .slider-nav {
-    padding: 0 1rem;
-  }
+.mobile-search-input::placeholder {
+  color: #999;
+}
 
-  .slider-btn {
-    width: 35px;
-    height: 35px;
-    font-size: 0.9rem;
-  }
+/* Mobile Hero Slider */
+.hero-slider {
+  height: 250px;
+  margin-bottom: 0rem; /* was 2rem */
+}
+
+.slide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  height: 100%;
+}
+
+.slide h1 {
+  font-size: 1.6rem;
+  margin: 1.5rem 0 0.8rem; /* Adjusted down */
+  text-align: center;
+}
+
+.slide p {
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+.cta-button {
+  padding: 10px 20px;
+  font-size: 0.9rem;
+}
+
+.slider-nav {
+  display: none; /* Hide navigation wrapper */
+  padding: 0 1rem;
+}
+
+.slider-btn,
+.slider-btn.prev,
+.slider-btn.next {
+  display: none !important; /* Hide left and right slider buttons */
+}
+
 
   /* Mobile Categories */
   .categories {
