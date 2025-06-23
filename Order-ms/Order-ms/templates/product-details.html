@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Details</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/index.css">
+    <style>
+       body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+.container {
+    max-width: 1100px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+.product-details {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    padding: 0;
+}
+
+.product-header {
+    grid-column: span 2;
+    padding: 20px 30px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.product-title {
+    margin: 0;
+    font-size: 28px;
+    font-weight: bold;
+    color: #222;
+}
+
+.product-price {
+    font-size: 26px;
+    color: #e67e22;
+    font-weight: 600;
+    margin-top: 10px;
+}
+
+.product-description {
+    padding: 20px 30px;
+    font-size: 16px;
+    line-height: 1.8;
+    color: #555;
+}
+
+.product-meta {
+    padding: 20px 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.meta-item {
+    background: #f6f6f6;
+    padding: 16px 20px;
+    border-radius: 8px;
+    border-left: 4px solid #2ecc71;
+}
+
+.meta-item h4 {
+    margin: 0 0 8px;
+    font-size: 16px;
+    color: #444;
+}
+
+.variants-list {
+    display: flex;
+    gap: 10px;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    flex-wrap: wrap;
+}
+
+.variant-item {
+    background: #fff;
+    border: 1.5px solid #ddd;
+    border-radius: 6px;
+    padding: 10px 15px;
+    text-align: center;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 120px;
+}
+
+.variant-item:hover {
+    border-color: #2ecc71;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.07);
+    transform: translateY(-2px);
+}
+
+.variant-item.selected {
+    border-color: #2ecc71;
+    background: #eaffea;
+    font-weight: 600;
+}
+
+.actions {
+    padding: 20px 30px 30px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    align-items: center;
+    border-top: 1px solid #eee;
+    grid-column: span 2;
+}
+
+.quantity-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.quantity-btn {
+    background: #eaeaea;
+    border: none;
+    padding: 8px 12px;
+    font-size: 18px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.quantity-btn:hover {
+    background: #ccc;
+}
+
+.quantity-input {
+    width: 50px;
+    text-align: center;
+    font-size: 16px;
+    padding: 6px 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: #fff;
+}
+
+.add-to-cart {
+    background: #2ecc71;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.add-to-cart:hover {
+    background: #27ae60;
+}
+
+.loading, .error {
+    grid-column: span 2;
+    padding: 40px;
+    font-size: 18px;
+    text-align: center;
+}
+
+.loading i {
+    margin-right: 10px;
+    color: #888;
+}
+
+.error {
+    color: #e74c3c;
+}
+
+    </style>
+</head>
+<body>
+       <!-- Pincode Selection Modal -->
+       <div class="pincode-modal" id="pincodeModal">
+        <div class="pincode-modal-content">
+            <button class="modal-close" onclick="closePincodeModal()">&times;</button>
+            <h2 class="modal-title">Where should we deliver?</h2>
+            
+            <div class="pincode-search">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search for pincode, area or street name." id="pincodeInput">
+            </div>
+            
+            <div class="recent-searches">
+                <h4>Available Pincodes</h4>
+                <div id="pincodesList">
+                    <!-- Pincodes will be loaded here from backend -->
+                    <div class="loading-pincodes">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Loading available pincodes...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header Section -->
+    <header class="header" id="header">
+        <div class="top-header">
+            <!-- Location Selector -->
+            <div class="location-selector" onclick="openPincodeModal()">
+                <i class="fas fa-map-marker-alt"></i>
+                <span class="pincode" id="selectedPincode">Select</span>
+                <i class="fas fa-chevron-down"></i>
+                <span class="location-name" id="selectedLocation">Pincode</span>
+            </div>
+
+            <!-- Logo -->
+            <a href="/" class="logo">
+                <span class="logo-icon">🍪</span>
+                <span class="logo-text">SnackMart</span>
+            </a>
+
+            <!-- Delivery Info -->
+            <div class="delivery-info">
+                <span class="delivery-label">Home Delivery Available</span>
+                <span class="delivery-time">8:00 AM - 10:00 PM</span>
+            </div>
+
+            <!-- Search Container -->
+            <div class="search-container">
+                <input type="text" placeholder="Search for snacks..." class="search-input">
+                <button class="search-button">SEARCH</button>
+            </div>
+
+            <!-- Products Link -->
+            <a href="/product" class="products-link">
+                <i class="fas fa-th-large"></i>
+                <span>All Products</span>
+            </a>
+
+            <!-- User Actions -->
+            <div class="user-actions">
+                <!-- Auth Container -->
+                <div class="auth-container">
+                    <a href="#" class="sign-in" id="authButton" onclick="toggleAuth()">
+                        <i class="fas fa-user"></i>
+                        <span id="authText">Sign In / Register</span>
+                    </a>
+                    
+                    <!-- Logout Dropdown -->
+                    <div class="logout-dropdown" id="logoutDropdown">
+                        <p style="margin-bottom: 1rem; color: #666; font-size: 0.9rem;">Are you sure you want to logout?</p>
+                        <button class="logout-btn" onclick="confirmLogout()">Yes, Logout</button>
+                        <button class="cancel-btn" onclick="cancelLogout()">Cancel</button>
+                    </div>
+                </div>
+
+                <!-- Cart Section -->
+                <div class="cart-section">
+                    <div class="cart-icon" id="cartIcon">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-count" id="cartCount">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <div class="container">
+        <div id="productDetailContainer" class="product-details">
+            <div class="loading">
+                <i class="fas fa-spinner fa-spin"></i> Loading product details...
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/common.js"></script>
+    <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+        const container = document.getElementById("productDetailContainer");
+        const params = new URLSearchParams(window.location.search);
+        const productId = params.get("id");
+
+        if (!productId) {
+            container.innerHTML = `
+                <div class="error">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p>Product not found</p>
+                </div>
+            `;
+            return;
+        }
+
+        try {
+            const response = await fetch(`/api/products/${productId}`);
+            if (!response.ok) throw new Error("Failed to load product details");
+
+            const product = await response.json();
+            console.log("Product data:", product);
+
+            let variants = [];
+            for (let i = 1; i <= 4; i++) {
+                const packing = product[`packing_0${i}`];
+                const price = product[`price_0${i}`];
+                if (packing && price) {
+                    variants.push({ packing, price });
+                }
+            }
+
+            container.innerHTML = `
+                <div class="product-header">
+                    <h1 class="product-title">${product.item_name || 'Unnamed Product'}</h1>
+                    <div class="product-price">₹${product.price_01?.toFixed(2) || 'N/A'}</div>
+                </div>
+
+                <p class="product-description">${product.description || 'No description available'}</p>
+
+                <div class="product-meta">
+                    ${product.shelf_life_days ? `
+                        <div class="meta-item">
+                            <h4>Shelf Life</h4>
+                            <p>${product.shelf_life_days} days</p>
+                        </div>
+                    ` : ''}
+                    
+                    ${product.lead_time_days ? `
+                        <div class="meta-item">
+                            <h4>Lead Time</h4>
+                            <p>${product.lead_time_days} days</p>
+                        </div>
+                    ` : ''}
+
+                    ${variants.length > 0 ? `
+                        <div class="meta-item">
+                            <h4>Available Variants</h4>
+                            <ul class="variants-list">
+                                ${variants.map((v, i) => `
+                                    <li class="variant-item ${i === 0 ? 'selected' : ''}" 
+                                        onclick="selectVariant(this, ${v.price})">
+                                        ${v.packing}<br>
+                                        ₹${v.price.toFixed(2)}
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+                </div>
+
+                <div class="actions">
+                    <div class="quantity-control">
+                        <button class="quantity-btn" onclick="updateQuantity(-1)">-</button>
+                        <input type="number" class="quantity-input" value="1" min="1" max="10" id="quantity" readonly>
+                        <button class="quantity-btn" onclick="updateQuantity(1)">+</button>
+                    </div>
+                    <button class="add-to-cart" onclick="addToCartFromDetails(${product.id})">
+                        <i class="fas fa-shopping-cart"></i> Add to Cart
+                    </button>
+                </div>
+            `;
+
+            // Add helper functions to window
+            window.selectVariant = function(element, price) {
+                document.querySelectorAll('.variant-item').forEach(item => {
+                    item.classList.remove('selected');
+                });
+                element.classList.add('selected');
+                document.querySelector('.product-price').textContent = `₹${price.toFixed(2)}`;
+            };
+
+            window.updateQuantity = function(change) {
+                const input = document.getElementById('quantity');
+                const newValue = Math.max(1, Math.min(10, parseInt(input.value) + change));
+                input.value = newValue;
+            };
+
+            window.addToCartFromDetails = function(productId) {
+                const quantity = parseInt(document.getElementById('quantity').value);
+                // Call the existing addToCart function from common.js
+                if (window.addToCart) {
+                    window.addToCart(productId, quantity);
+                }
+            };
+
+        } catch (err) {
+            console.error(err);
+            container.innerHTML = `
+                <div class="error">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <p>Failed to load product details. Please try again later.</p>
+                </div>
+            `;
+        }
+    });
+    </script>
+    <script src="/static/js/common.js"></script>
+    <script src="/static/js/index.js"></script>
+    <script src="/static/js/navbar.js"></script>
+</body>
+</html>

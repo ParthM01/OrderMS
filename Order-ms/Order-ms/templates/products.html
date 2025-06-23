@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products - SnackMart</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/index.css" />
+    <style>
+        .products-header {
+            padding: 120px 0 40px;
+            background: linear-gradient(135deg, #ff6b35, #f7931e);
+            color: white;
+            text-align: center;
+        }
+        .filters-section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .filter-group select, .filter-group input {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .filter-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 25px;
+            background: #f8f8f8;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .filter-btn.active {
+            background: #ff6b35;
+            color: white;
+        }
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        .pagination button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            background: #ff6b35;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .pagination button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 53, 0.4);
+        }
+    </style>
+</head>
+<body>
+       <!-- Pincode Selection Modal -->
+    <div class="pincode-modal" id="pincodeModal">
+        <div class="pincode-modal-content">
+            <button class="modal-close" onclick="closePincodeModal()">&times;</button>
+            <h2 class="modal-title">Where should we deliver?</h2>
+            
+            <div class="pincode-search">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search for pincode, area or street name." id="pincodeInput">
+            </div>
+            
+            <div class="recent-searches">
+                <h4>Available Pincodes</h4>
+                <div id="pincodesList">
+                    <!-- Pincodes will be loaded here from backend -->
+                    <div class="loading-pincodes">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Loading available pincodes...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header Section -->
+    <header class="header" id="header">
+        <div class="top-header">
+            <!-- Location Selector -->
+            <div class="location-selector" onclick="openPincodeModal()">
+                <i class="fas fa-map-marker-alt"></i>
+                <span class="pincode" id="selectedPincode">Select</span>
+                <i class="fas fa-chevron-down"></i>
+                <span class="location-name" id="selectedLocation">Pincode</span>
+            </div>
+
+            <!-- Logo -->
+            <a href="/" class="logo">
+                <span class="logo-icon">🍪</span>
+                <span class="logo-text">SnackMart</span>
+            </a>
+
+            <!-- Delivery Info -->
+            <div class="delivery-info">
+                <span class="delivery-label">Home Delivery Available</span>
+                <span class="delivery-time">8:00 AM - 10:00 PM</span>
+            </div>
+
+            <!-- Search Container -->
+            <div class="search-container">
+                <input type="text" placeholder="Search for snacks..." class="search-input">
+                <button class="search-button">SEARCH</button>
+            </div>
+
+            <!-- Products Link -->
+            <a href="/product" class="products-link">
+                <i class="fas fa-th-large"></i>
+                <span>All Products</span>
+            </a>
+
+            <!-- User Actions -->
+            <div class="user-actions">
+                <!-- Auth Container -->
+                <div class="auth-container">
+                    <a href="#" class="sign-in" id="authButton" onclick="toggleAuth()">
+                        <i class="fas fa-user"></i>
+                        <span id="authText">Sign In / Register</span>
+                    </a>
+                    
+                    <!-- Logout Dropdown -->
+                    <div class="logout-dropdown" id="logoutDropdown">
+                        <p style="margin-bottom: 1rem; color: #666; font-size: 0.9rem;">Are you sure you want to logout?</p>
+                        <button class="logout-btn" onclick="confirmLogout()">Yes, Logout</button>
+                        <button class="cancel-btn" onclick="cancelLogout()">Cancel</button>
+                    </div>
+                </div>
+
+                <!-- Cart Section -->
+                <div class="cart-section">
+                    <div class="cart-icon" id="cartIcon">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-count" id="cartCount">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- Cart Popup -->
+    <div class="cart-popup" id="cartPopup">
+        <div class="cart-popup-header">
+            <h3>My cart <span id="cartItemCount">0</span> items</h3>
+            <div class="cart-summary">
+                <div class="cart-savings">
+                    Savings
+                    <span id="cartSavings">₹0</span>
+                </div>
+                <div class="cart-total-summary">
+                    Cart Total
+                    <span id="cartTotal">₹0</span>
+                </div>
+            </div>
+            <button class="close-cart" id="closeCart">&times;</button>
+        </div>
+
+        <div class="cart-items" id="cartItems">
+            <!-- Cart items will be dynamically loaded here -->
+            <div style="text-align: center; padding: 3rem;">
+                <i class="fas fa-shopping-cart" style="font-size: 4rem; color: #ddd; margin-bottom: 1rem;"></i>
+                <p style="color: #666; font-size: 1.1rem;">Your cart is empty</p>
+            </div>
+        </div>
+
+        <div class="cart-footer">
+            <div class="minimum-order">
+                Minimum Order Amount is ₹500
+            </div>
+<button class="view-cart-btn" id="viewFullCart" >VIEW FULL CART</button>
+        </div>
+    </div>
+
+    <!-- Products Header -->
+    <section class="products-header">
+        <h1>Our Products</h1>
+        <p>Discover our complete range of fresh and delicious snacks</p>
+    </section>
+
+    <!-- Products Container -->
+    <div class="products-container">
+        <!-- Filters Section -->
+        <div class="filters-section">
+            <h2 class="filters-title">Filter Products</h2>
+            
+            <div class="filters-grid">
+                <div class="filter-group">
+                    <label for="categoryFilter">Category</label>
+                    <select id="categoryFilter" onchange="applyFilters()">
+                        <option value="">All Categories</option>
+                        <option value="chewda">Chewda & Mixtures</option>
+                        <option value="laddu">Sweet Laddu</option>
+                        <option value="namkeen">Namkeen</option>
+                        <option value="sweets">Traditional Sweets</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="priceFilter">Price Range</label>
+                    <select id="priceFilter" onchange="applyFilters()">
+                        <option value="">All Prices</option>
+                        <option value="0-200">Under ₹200</option>
+                        <option value="200-400">₹200 - ₹400</option>
+                        <option value="400-600">₹400 - ₹600</option>
+                        <option value="600+">Above ₹600</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="sortFilter">Sort By</label>
+                    <select id="sortFilter" onchange="applyFilters()">
+                        <option value="name">Name</option>
+                        <option value="price-low">Price: Low to High</option>
+                        <option value="price-high">Price: High to Low</option>
+                        <option value="rating">Rating</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label for="searchBox">Search Products</label>
+                    <div class="search-box">
+                        <input type="text" id="searchBox" placeholder="Search for products..." oninput="applyFilters()">
+                        <i class="fas fa-search"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-buttons">
+                <button class="filter-btn active" onclick="setQuickFilter('all')">All</button>
+                <button class="filter-btn" onclick="setQuickFilter('chewda')">Chewda</button>
+                <button class="filter-btn" onclick="setQuickFilter('laddu')">Laddu</button>
+                <button class="filter-btn" onclick="setQuickFilter('namkeen')">Namkeen</button>
+                <button class="filter-btn" onclick="setQuickFilter('sweets')">Sweets</button>
+            </div>
+        </div>
+
+        <!-- Products Grid -->
+        <div id="productsContainer" class="product-grid">
+            <div class="loading-spinner">
+                <div class="loading">Loading products...</div>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" id="pagination" style="display: none;">
+            <button onclick="changePage(-1)"><i class="fas fa-chevron-left"></i> Previous</button>
+            <span id="pageNumbers"></span>
+            <button onclick="changePage(1)">Next <i class="fas fa-chevron-right"></i></button>
+        </div>
+    </div>
+
+    <script src="static/js/common.js"></script>
+    <script src="static/js/products.js"></script>
+    <script src="static/js/navbar.js"></script>
+
+    
+</body>
+</html>
