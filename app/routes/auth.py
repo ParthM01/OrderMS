@@ -53,7 +53,6 @@ async def register(
 def login_page(request: Request):
     print("✔ Login route hit")
     return templates.TemplateResponse("login.html", {"request": request})
-
 @router.post("/login")
 def login(
     mobile_number: str = Form(...),
@@ -70,7 +69,8 @@ def login(
         response = JSONResponse(content={
             "message": "Login successful",
             "user": {
-                "first_name": user.first_name
+                "first_name": user.first_name,
+                "id": user.id
             }
         })
         response.set_cookie(key="logged_in", value="true", httponly=True)
@@ -97,13 +97,20 @@ def reset_password(req: ResetPasswordRequest, db: Session = Depends(get_db)):
         return JSONResponse(content={"message": "Password reset successful"})
     return JSONResponse(content={"detail": "Invalid credentials"}, status_code=401)
 
+@router.get("/api/user/addresses")
+def get_user_saved_address(id: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == id).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user.address
+
 
 @router.post("/api/user/address")
 async def save_user_address(payload: UserAddressUpdate, db: Session = Depends(get_db)):
-    # Extract details
-    print(payload)
-    phone = payload.phone
+    print("Received payload:", payload)
 
+    phone = payload.phone
     if not phone:
         raise HTTPException(status_code=400, detail="Phone is required in userDetails")
 
@@ -111,9 +118,23 @@ async def save_user_address(payload: UserAddressUpdate, db: Session = Depends(ge
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    if not user.address:
-        user.address = []
+    # Initialize address list if needed
+    # if not user.address:
+    #     user.address = []
+    # else:
+    #     user.address = []
 
-    # Append new address
-    user.address.append(payload.address.model_dump())
+    user.address = []
+
+    new_address = payload.address.model_dump()
+    print("Appending address:", new_address)
+
+    # Optional: prevent duplicates based on 'id'
+    if not any(addr.get("id") == new_address.get("id") for addr in user.address):
+        user.address.append(new_address)
+    else:
+        print("Duplicate address ID. Skipping append.")
+
     db.commit()
+
+    return JSONResponse(content={"message": "Address saved successfully", "addresses": user.address})

@@ -8,6 +8,8 @@ document.addEventListener("DOMContentLoaded", () => {
   loadUserDetails()
   fetchCartFromBackend()
   initializeScrollHandling()
+  renderSelectedAddress()
+  loadCart()
 })
 
 // Initialize scroll handling
@@ -23,56 +25,54 @@ function initializeScrollHandling() {
 
 // Load user details from localStorage with enhanced data fetching
 function loadUserDetails() {
-  const storedUser = localStorage.getItem("userDetails")
-  if (storedUser) {
-    userDetails = JSON.parse(storedUser)
-  } else {
-    // Try to get user details from other localStorage keys
-    const userName = localStorage.getItem("userName") || localStorage.getItem("user_name") || ""
-    const userEmail = localStorage.getItem("userEmail") || localStorage.getItem("user_email") || ""
-    const userPhone = localStorage.getItem("userPhone") || localStorage.getItem("user_phone") || ""
+  const user = JSON.parse(localStorage.getItem('user'))
+    console.log(user)
 
     // Default user structure with fetched data
     userDetails = {
-      name: userName,
-      email: userEmail,
-      phone: userPhone,
-      addresses: [],
+      id:user.id
+    }
+  if (user) {
+    userDetails = user
+    saveUserDetails()
+  } else {
+    // Try to get user details from other localStorage keys
+    const user = JSON.parse(localStorage.getItem('user'))
+    console.log(user)
+
+    // Default user structure with fetched data
+    userDetails = {
+      id:user.id
     }
 
     // Save the consolidated user details
-    if (userName || userEmail || userPhone) {
-      saveUserDetails()
-    }
+   
   }
 
   // Load selected address
-  const storedAddress = localStorage.getItem("selectedAddress")
-  if (storedAddress) {
-    selectedAddress = JSON.parse(storedAddress)
-  }
+  // const storedAddress = localStorage.getItem("selectedAddress")
+  // if (storedAddress) {
+  //   selectedAddress = JSON.parse(storedAddress)
+  // }
 }
 
 // Save user details to localStorage and backend
 async function saveUserDetails() {
-  localStorage.setItem("userDetails", JSON.stringify(userDetails))
-
-  // Also save individual fields for compatibility
-  localStorage.setItem("userName", userDetails.name || "")
-  localStorage.setItem("userEmail", userDetails.email || "")
-  localStorage.setItem("userPhone", userDetails.phone || "")
 
   try {
-    const response = await fetch("/api/user/save", {
-      method: "POST",
+    const response = await fetch(`/api/user/addresses?id=${userDetails.id}`, {
+      method: "GET",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(userDetails),
     })
+    const result = await response.json()
+    console.log(result)
+    if (response.ok) {
+      selectedAddress = result[0]
+      console.log( "selectedAddress",selectedAddress)
 
-    if (!response.ok) {
-      console.warn("Failed to save user details to backend")
+      console.log("User details saved to backend")
     }
   } catch (error) {
     console.error("Error saving user details:", error)
@@ -83,7 +83,7 @@ async function saveUserDetails() {
 async function fetchCartFromBackend() {
   try {
     const response = await fetch("/cart")
-    if (!response.ok) throw new Error("Failed to fetch cart")
+    // if (!response.ok) throw new Error("Failed to fetch cart")
 
     cart = await response.json()
     localStorage.setItem("cart", JSON.stringify(cart))
@@ -234,12 +234,12 @@ function loadCart() {
           </h3>
           <button class="change-address-btn" onclick="openAddressModal()">
             <i class="fas fa-edit"></i>
-            ${selectedAddress ? "Change" : "Add"} Address
+            ${renderSelectedAddress() ? "Change" : "Add"} Address
           </button>
         </div>
 
         <div class="address-content">
-          ${selectedAddress ? renderSelectedAddress() : renderNoAddress()}
+          ${renderSelectedAddress()}
         </div>
       </div>
     </div>
@@ -272,19 +272,10 @@ function loadCart() {
         <span class="amount">₹${total.toFixed(2)}</span>
       </div>
 
-      <button class="checkout-btn" onclick="proceedToCheckout()" ${subtotal < 500 || !selectedAddress ? "disabled" : ""}>
-        ${subtotal < 500 ? "Minimum order ₹500" : !selectedAddress ? "Add delivery address" : "Proceed to Checkout"}
+      <button class="checkout-btn" onclick="proceedToCheckout()"  >
+         "Proceed to Checkout"
       </button>
 
-      ${subtotal < 500 ? `
-        <p style="text-align: center; color: #ff6b6b; font-size: 0.85rem; margin-top: 0.5rem;">
-          Add ₹${(500 - subtotal).toFixed(2)} more to place order
-        </p>
-      ` : !selectedAddress ? `
-        <p style="text-align: center; color: #ff6b6b; font-size: 0.85rem; margin-top: 0.5rem;">
-          Please add a delivery address to continue
-        </p>
-      ` : ""}
     </div>
 
     <!-- Address Modal -->
@@ -373,6 +364,12 @@ function loadCart() {
 
 // Render selected address
 function renderSelectedAddress() {
+  if (!selectedAddress) {
+    console.log("No selected address")
+    return renderNoAddress(); // fallback if address is missing
+  }
+  console.log("renderSelectedAddress",selectedAddress)
+
   return `
     <div class="selected-address">
       <div class="address-info">
@@ -391,9 +388,8 @@ function renderSelectedAddress() {
         <span>Delivery in 30-45 mins</span>
       </div>
     </div>
-  `
+  `;
 }
-
 // Render no address state
 function renderNoAddress() {
   return `
@@ -402,20 +398,16 @@ function renderNoAddress() {
         <i class="fas fa-map-marker-alt"></i>
       </div>
       <p>No delivery address selected</p>
-      <p class="no-address-subtitle">Add an address to continue with your order</p>
+      <p class="no-address-subtitle"bgnhhmh ontinue with your order</p>
     </div>
   `
 }
 
 // Render saved addresses
 function renderSavedAddresses() {
-  if (!userDetails.addresses || userDetails.addresses.length === 0) {
-    return `
-      <div class="no-saved-addresses">
-        <i class="fas fa-map-marker-alt"></i>
-        <p>No saved addresses</p>
-      </div>
-    `
+  console.log(!userDetails.addresses)
+  if (!userDetails.addresses) {
+    return renderSelectedAddress()
   }
 
   return userDetails.addresses
@@ -518,8 +510,8 @@ async function addNewAddress() {
 
   // Update user details
   // userDetails.name = name
-  userDetails.email = email
-  // userDetails.phone = phone
+  // userDetails.email = email
+  userDetails.phone = phone
 
   // Create new address
   const newAddress = {
@@ -529,8 +521,7 @@ async function addNewAddress() {
     city,
     state,
     pincode,
-    type,
-    createdAt: new Date().toISOString()
+    type
   }
 
   // Add to addresses array
@@ -538,6 +529,8 @@ async function addNewAddress() {
     userDetails.addresses = []
   }
   userDetails.addresses.push(newAddress)
+
+  console.log(userDetails.phone)
 
   try {
     // Save to database
@@ -583,7 +576,6 @@ async function addNewAddress() {
 
   showToast("Address added successfully", "success")
 }
-
 function selectAddress(index) {
   selectedAddress = userDetails.addresses[index]
   localStorage.setItem("selectedAddress", JSON.stringify(selectedAddress))
@@ -749,24 +741,24 @@ async function proceedToCheckout() {
     return
   }
 
-  if (!selectedAddress) {
-    showToast("Please select a delivery address", "error")
-    openAddressModal()
-    return
-  }
+  // if (!selectedAddress) {
+  //   showToast("Please select a delivery address", "error")
+  //   openAddressModal()
+  //   return
+  // }
 
-  if (!userDetails.name || !userDetails.email || !userDetails.phone) {
-    showToast("Please complete your profile details", "error")
-    openAddressModal()
-    return
-  }
+  // if (!userDetails.name || !userDetails.email || !userDetails.phone) {
+  //   showToast("Please complete your profile details", "error")
+  //   openAddressModal()
+  //   return
+  // }
 
   const totalAmount = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
 
-  if (totalAmount < 500) {
-    showToast("Minimum order amount is ₹500", "error")
-    return
-  }
+  // if (totalAmount < 500) {
+  //   showToast("Minimum order amount is ₹500", "error")
+  //   return
+  // }
 
   try {
     // Save order details with address
