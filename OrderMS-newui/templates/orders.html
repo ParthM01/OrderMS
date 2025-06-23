@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders - SnackMart</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/orders.css">
+</head>
+<body>
+    <!-- Header Section -->
+    <header class="header">
+        <div class="header-container">
+            <!-- Location -->
+            <!-- <div class="location-selector" onclick="openPincodeModal()">
+                <i class="fas fa-map-marker-alt"></i>
+                <div class="location-info">
+                    <span class="pincode" id="selectedPincode">400001</span>
+                    <span class="location-name" id="selectedLocation">Mumbai</span>
+                </div>
+                <i class="fas fa-chevron-down"></i>
+            </div> -->
+
+            <!-- Logo -->
+            <a href="/" class="logo">
+                <img src="static/images/logo.png" alt="Logo">
+            </a>
+
+            <!-- Search -->
+            <div class="search-container">
+                <input type="text" placeholder="Search for orders, products..." class="search-input" id="searchInput">
+                <button class="search-btn">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+
+            <!-- Products Link -->
+            <a href="/products" class="products-link">
+                <i class="fas fa-th-large"></i>
+                <span>Products</span>
+            </a>
+
+            <!-- User Actions -->
+            <div class="auth-container">
+                <a href="#" class="sign-in" id="authButton" onclick="toggleAuth()">
+                    <i class="fas fa-user"></i>
+                    <span id="authText">Sign In</span>
+                </a>
+                
+                <div class="logout-dropdown" id="logoutDropdown">
+                    <p style="margin-bottom: 1rem; color: #666; font-size: 0.9rem;">Are you sure you want to logout?</p>
+                    <button class="logout-btn" onclick="confirmLogout()">Yes, Logout</button>
+                    <button class="cancel-btn" onclick="cancelLogout()">Cancel</button>
+                </div> 
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="breadcrumb">
+                    <a href="/">Home</a>
+                    <i class="fas fa-chevron-right"></i>
+                    <span>My Orders</span>
+                </div>
+                <h1 class="page-title">
+                    <i class="fas fa-box"></i>
+                    My Orders
+                </h1>
+                <p class="page-subtitle">Track and manage your orders</p>
+            </div>
+
+            <!-- Orders Dashboard -->
+            <div class="orders-dashboard">
+                <!-- Current Orders Section -->
+                <div class="orders-section current-orders">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-clock"></i>
+                            Current Orders
+                        </h2>
+                        <span class="order-count" id="currentOrderCount">0</span>
+                    </div>
+                    <div class="orders-list" id="currentOrdersList">
+                        <!-- Current orders will be loaded here -->
+                    </div>
+                </div>
+
+                <!-- Recent Orders Section -->
+                <div class="orders-section recent-orders">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-history"></i>
+                            Recent Orders (Last 15)
+                        </h2>
+                        <span class="order-count" id="recentOrderCount">0</span>
+                    </div>
+                    <div class="orders-list recent-list" id="recentOrdersList">
+                        <!-- Recent orders will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Order Details Modal -->
+    <div class="modal-overlay" id="orderModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Order Details</h3>
+                <button class="modal-close" onclick="closeOrderModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="orderModalBody">
+                <!-- Order details will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Cancel Order Modal -->
+    <div class="cancel-modal" id="cancelModal">
+        <div class="cancel-modal-content">
+            <div class="cancel-modal-header">
+                <h3>Cancel Order</h3>
+                <button class="modal-close" onclick="closeCancelModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="cancel-modal-body">
+                <p>Are you sure you want to cancel this order?</p>
+                <div class="cancel-reason">
+                    <label for="cancelReason">Reason for cancellation:</label>
+                    <select id="cancelReason">
+                        <option value="">Select a reason</option>
+                        <option value="changed_mind">Changed my mind</option>
+                        <option value="wrong_item">Ordered wrong item</option>
+                        <option value="found_better_price">Found better price elsewhere</option>
+                        <option value="delivery_delay">Delivery taking too long</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="cancel-actions">
+                    <button class="cancel-confirm-btn" onclick="confirmCancelOrder()">
+                        <i class="fas fa-times"></i>
+                        Cancel Order
+                    </button>
+                    <button class="cancel-back-btn" onclick="closeCancelModal()">
+                        <i class="fas fa-arrow-left"></i>
+                        Go Back
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Loading orders...</p>
+        </div>
+    </div>
+
+    <script src="/static/js/orders.js"></script>
+        <script src="/static/js/index.js"></script>
+</body>
+</html>
