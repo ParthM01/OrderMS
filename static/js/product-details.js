@@ -1,18 +1,98 @@
 // Global variables
 let currentProduct = null
-const cart = JSON.parse(localStorage.getItem("cart")) || []
+window.allProducts = []
+window.filteredProducts = []
+window.currentSearchQuery = ""
+window.lastScrollY = 0
+let selectedVariant = null
 
-// API Configuration
-const API_BASE_URL = "/api" // Change this to your backend URL
-
-// Initialize the page
+// Initialize when DOM is loaded
 document.addEventListener("DOMContentLoaded", async () => {
+  initializeWebsite()
+  checkAuthState()
   updateCartCount()
+  syncCartCounts()
   await loadProductDetails()
   await loadRelatedProducts()
   initializeScrollToTop()
-  checkAuthState()
+  setupScrollHandler()
+  await loadAllProducts()
 })
+
+// Initialize website functionality
+function initializeWebsite() {
+  // Set up search functionality for both desktop and mobile
+  const searchBox = document.getElementById("searchInput")
+  const mobileSearchBox = document.getElementById("mobileSearchBox")
+
+  if (searchBox) {
+    searchBox.addEventListener("input", debounce(handleSearchInput, 300))
+    searchBox.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        performSearch()
+      }
+    })
+    searchBox.addEventListener("focus", showAutocomplete)
+  }
+
+  if (mobileSearchBox) {
+    mobileSearchBox.addEventListener("input", debounce(handleMobileSearchInput, 300))
+    mobileSearchBox.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        performMobileSearch()
+      }
+    })
+    mobileSearchBox.addEventListener("focus", showMobileAutocomplete)
+  }
+
+  // Set up click outside handlers
+  setupClickOutsideHandlers()
+}
+
+// Setup scroll handler for mobile navbar hide/show
+function setupScrollHandler() {
+  if (window.innerWidth <= 768) {
+    let ticking = false
+
+    function updateNavbar() {
+      const header = document.getElementById("header")
+      const currentScrollY = window.scrollY
+
+      if (currentScrollY > window.lastScrollY && currentScrollY > 100) {
+        // Scrolling down
+        header.classList.add("hidden")
+      } else {
+        // Scrolling up
+        header.classList.remove("hidden")
+      }
+
+      window.lastScrollY = currentScrollY
+      ticking = false
+    }
+
+    window.addEventListener("scroll", () => {
+      if (!ticking) {
+        requestAnimationFrame(updateNavbar)
+        ticking = true
+      }
+    })
+  }
+}
+
+// Sync cart counts between mobile and desktop
+function syncCartCounts() {
+  const cart = JSON.parse(localStorage.getItem("cart")) || []
+  const totalCount = cart.reduce((sum, item) => sum + item.quantity, 0)
+  const cartCountElement = document.getElementById("cartCount")
+  const mobileCartCountElement = document.getElementById("mobileCartCount")
+
+  if (cartCountElement) {
+    cartCountElement.textContent = totalCount
+  }
+  if (mobileCartCountElement) {
+    mobileCartCountElement.textContent = totalCount
+  }
+}
 
 // Load product details from backend
 async function loadProductDetails() {
@@ -25,8 +105,7 @@ async function loadProductDetails() {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/products/${productId}`)
-
+    const response = await fetch(`/api/products/${productId}`)
     if (!response.ok) {
       throw new Error(`Failed to load product details: ${response.status}`)
     }
@@ -43,11 +122,11 @@ async function loadProductDetails() {
   }
 }
 
-// Render product details - Enhanced with purple theme matching index page
+// Render product details with slab-style variants
 function renderProductDetails(product) {
   const container = document.getElementById("productContainer")
 
-  // Create variants array - Preserved from your original code
+  // Create variants array
   const variants = []
   for (let i = 1; i <= 4; i++) {
     const packing = product[`packing_0${i}`]
@@ -57,29 +136,50 @@ function renderProductDetails(product) {
     }
   }
 
-  // Calculate discount - Preserved from your original code
+  // Set default selected variant
+  selectedVariant = variants[0] || { packing: "250gm", price: product.price_01 || 100 }
+
+  // Calculate discount
   let discountPercentage = 0
-  if (product.original_price && product.price_01) {
-    discountPercentage = Math.round(((product.original_price - product.price_01) / product.original_price) * 100)
+  if (product.original_price && selectedVariant.price) {
+    discountPercentage = Math.round(((product.original_price - selectedVariant.price) / product.original_price) * 100)
   }
 
   container.innerHTML = `
         <div class="product-layout">
             <div class="product-gallery">
-                  <div class="product-image" onclick="goToProductDetails(${product.id})">
-  <img src="${product.image_url|| 'images/.png'}"
-       alt="${product.item_name}"
-       loading="lazy"
-       onload="this.parentElement.classList.add('loaded')"
-       onerror="this.src='images/placeholder.png'; this.classList.add('image-error');" />
-</div>
-                <div class="product-thumbnails">
-                    <div class="thumbnail active" onclick="changeProductImage('${product.icon || "🍪"}')">
-                        ${product.icon || "🍪"}
+                <div class="product-image">
+                    <img src="${product.image_url || "/placeholder.svg?height=400&width=400"}"
+                         alt="${product.item_name}"
+                         loading="lazy"
+                         onload="this.parentElement.classList.add('loaded')"
+                         onerror="this.src='/placeholder.svg?height=400&width=400'; this.classList.add('image-error');" />
+                </div>
+                
+                <!-- Description and Specifications below image -->
+                <div class="product-details-section">
+                    <div class="product-tabs">
+                        <div class="tabs-header">
+                            <button class="tab-btn active" onclick="switchTab(this, 'description')">Description</button>
+                            <button class="tab-btn" onclick="switchTab(this, 'specifications')">Specifications</button>
+                        </div>
+                        
+                        <div class="tab-content active" id="description">
+                            <p>${product.description || "Delicious snack made with premium ingredients and traditional recipes. Perfect for sharing with family and friends or enjoying as a personal treat."}</p>
+                            <p>Our products are made with the finest ingredients, ensuring a delightful experience with every bite. Perfect for snacking at home, gifting to loved ones, or enjoying during special occasions.</p>
+                        </div>
+                        
+                        <div class="tab-content" id="specifications">
+                            <ul>
+                                <li><strong>Category:</strong> ${product.category || "N/A"}</li>
+                                <li><strong>Weight:</strong> ${selectedVariant.packing || "N/A"}</li>
+                                <li><strong>Shelf Life:</strong> ${product.shelf_life_days || "N/A"} days</li>
+                                <li><strong>Delivery Time:</strong> ${product.lead_time_days || "N/A"} days</li>
+                                <li><strong>Storage:</strong> Store in a cool, dry place</li>
+                                <li><strong>Ingredients:</strong> Premium quality ingredients (see packaging for details)</li>
+                            </ul>
+                        </div>
                     </div>
-                    <div class="thumbnail" onclick="changeProductImage('🥨')">🥨</div>
-                    <div class="thumbnail" onclick="changeProductImage('🍩')">🍩</div>
-                    <div class="thumbnail" onclick="changeProductImage('🍰')">🍰</div>
                 </div>
             </div>
             
@@ -100,80 +200,38 @@ function renderProductDetails(product) {
                     </div>
                     
                     <div class="product-price-container">
-                        <div class="product-price" id="currentPrice">₹${product.price_01?.toFixed(2) || "N/A"}</div>
+                        <div class="product-price" id="currentPrice">₹${selectedVariant.price?.toFixed(2) || "N/A"}</div>
                         ${
                           product.original_price
                             ? `
-                            <div class="product-original-price">₹${product.original_price.toFixed(2)}</div>
-                            <div class="product-discount">${discountPercentage}% OFF</div>
-                        `
+                                    <div class="product-original-price">₹${product.original_price.toFixed(2)}</div>
+                                    <div class="product-discount">${discountPercentage}% OFF</div>
+                                `
                             : ""
                         }
-                    </div>
-                </div>
-                
-                <div class="product-description">
-                    ${product.description || "Delicious snack made with premium ingredients and traditional recipes. Perfect for sharing with family and friends or enjoying as a personal treat."}
-                </div>
-                
-                <div class="product-meta">
-                    ${
-                      product.shelf_life_days
-                        ? `
-                        <div class="meta-item">
-                            <i class="fas fa-calendar-alt"></i>
-                            <div class="meta-item-content">
-                                <h4>Shelf Life</h4>
-                                <p>${product.shelf_life_days} days</p>
-                            </div>
-                        </div>
-                    `
-                        : ""
-                    }
-                    
-                    ${
-                      product.lead_time_days
-                        ? `
-                        <div class="meta-item">
-                            <i class="fas fa-truck"></i>
-                            <div class="meta-item-content">
-                                <h4>Delivery Time</h4>
-                                <p>${product.lead_time_days} days</p>
-                            </div>
-                        </div>
-                    `
-                        : ""
-                    }
-                    
-                    <div class="meta-item">
-                        <i class="fas fa-shield-alt"></i>
-                        <div class="meta-item-content">
-                            <h4>Quality Guarantee</h4>
-                            <p>100% Fresh & Premium</p>
-                        </div>
                     </div>
                 </div>
                 
                 ${
                   variants.length > 0
                     ? `
-                    <div class="product-variants">
-                        <h3 class="variants-title">Available Variants</h3>
-                        <div class="variants-list">
-                            ${variants
-                              .map(
-                                (v, i) => `
-                                <div class="variant-item ${i === 0 ? "active" : ""}" 
-                                    onclick="selectVariant(this, ${v.price})">
-                                    <div class="variant-name">${v.packing}</div>
-                                    <div class="variant-price">₹${v.price.toFixed(2)}</div>
+                            <div class="product-variants">
+                                <h3 class="variants-title">Select Variant</h3>
+                                <div class="variants-list">
+                                    ${variants
+                                      .map(
+                                        (v, i) => `
+                                                <div class="variant-item ${i === 0 ? "active" : ""}" 
+                                                    onclick="selectVariant(this, ${v.price}, '${v.packing}')">
+                                                    <div class="variant-name">${v.packing}</div>
+                                                    <div class="variant-price">₹${v.price.toFixed(2)}</div>
+                                                </div>
+                                            `,
+                                      )
+                                      .join("")}
                                 </div>
-                            `,
-                              )
-                              .join("")}
-                        </div>
-                    </div>
-                `
+                            </div>
+                        `
                     : ""
                 }
                 
@@ -193,48 +251,44 @@ function renderProductDetails(product) {
                         <i class="far fa-heart"></i>
                     </button>
                 </div>
-                
-                <div class="product-tabs">
-                    <div class="tabs-header">
-                        <button class="tab-btn active" onclick="switchTab(this, 'description')">Description</button>
-                        <button class="tab-btn" onclick="switchTab(this, 'specifications')">Specifications</button>
-                        
-                    </div>
-                    
-                    <div class="tab-content active" id="description">
-                        <p>${product.description || "No description available for this product."}</p>
-                        <p>Our products are made with the finest ingredients, ensuring a delightful experience with every bite. Perfect for snacking at home, gifting to loved ones, or enjoying during special occasions.</p>
-                    </div>
-                    
-                    <div class="tab-content" id="specifications">
-                        <ul>
-                            <li><strong>Category:</strong> ${product.category || "N/A"}</li>
-                            <li><strong>Weight:</strong> ${product.packing_01 || "N/A"}</li>
-                            <li><strong>Shelf Life:</strong> ${product.shelf_life_days || "N/A"} days</li>
-                            <li><strong>Delivery Time:</strong> ${product.lead_time_days || "N/A"} days</li>
-                            <li><strong>Storage:</strong> Store in a cool, dry place</li>
-                            <li><strong>Ingredients:</strong> Premium quality ingredients (see packaging for details)</li>
-                        </ul>
-                    </div>
-                </div>
             </div>
         </div>
     `
+
+  // Set default selected variant and ensure first variant is active
+  selectedVariant = variants[0] || { packing: "250gm", price: product.price_01 || 100 }
+
+  // Ensure the first variant is marked as active
+  setTimeout(() => {
+    const firstVariantElement = document.querySelector(".variant-item")
+    if (firstVariantElement && !firstVariantElement.classList.contains("active")) {
+      firstVariantElement.classList.add("active")
+    }
+  }, 100)
 }
 
-// Load related products from backend - Preserved from your original code
+// Load related products from backend (filtered by category)
 async function loadRelatedProducts() {
   try {
-    const response = await fetch(`${API_BASE_URL}/products`)
-
+    const response = await fetch("/api/products")
     if (!response.ok) {
       throw new Error(`Failed to load related products: ${response.status}`)
     }
 
     const products = await response.json()
 
-    // Filter out current product and get up to 4 related products
-    const relatedProducts = products.filter((p) => currentProduct && p.id !== currentProduct.id).slice(0, 4)
+    // Filter products by same category and exclude current product
+    let relatedProducts = products.filter((p) => {
+      return currentProduct && p.id !== currentProduct.id && p.category === currentProduct.category
+    })
+
+    // If no products in same category, get random products
+    if (relatedProducts.length === 0) {
+      relatedProducts = products.filter((p) => currentProduct && p.id !== currentProduct.id)
+    }
+
+    // Limit to 8 products
+    relatedProducts = relatedProducts.slice(0, 8)
 
     renderRelatedProducts(relatedProducts)
   } catch (error) {
@@ -244,7 +298,7 @@ async function loadRelatedProducts() {
   }
 }
 
-// Render related products - Enhanced with purple theme
+// Render related products with variant dropdowns
 function renderRelatedProducts(products) {
   const container = document.getElementById("relatedGrid")
 
@@ -254,49 +308,113 @@ function renderRelatedProducts(products) {
   }
 
   container.innerHTML = products
-    .map(
-      (product) => `
-        <div class="product-card" onclick="goToProduct(${product.id})">
-            <div class="product-image" onclick="goToProductDetails(${product.id})">
-            <img src="${product.image_url || 'images/placeholder.png'}"
-                 alt="${product.item_name}"
-                 loading="lazy"
-                 onload="this.parentElement.classList.add('loaded')"
-                 onerror="this.src='images/placeholder.png'; this.classList.add('image-error');" />
-          </div>
-            <div class="product-info">
-                <h3>${product.item_name}</h3>
-                <p class="product-description">${(product.description || "").substring(0, 80)}...</p>
-                <div class="product-price">₹${product.max_price?.toFixed(2) || "N/A"}</div>
-                <button class="add-to-cart" onclick="event.stopPropagation(); addToCart(${product.id})">
-                    <i class="fas fa-plus"></i>
-                </button>
-            </div>
-        </div>
-    `,
-    )
+    .map((product) => {
+      // Create variants for related products
+      const variants = []
+      for (let i = 1; i <= 4; i++) {
+        const packing = product[`packing_0${i}`]
+        const price = product[`price_0${i}`]
+        if (packing && price) {
+          variants.push({ packing, price })
+        }
+      }
+
+      const defaultVariant = variants[0] || { price: product.price_01 || 100, packing: "250gm" }
+
+      return `
+                    <div class="product-card" onclick="goToProduct(${product.id})">
+                        <div class="product-image">
+                            <img src="${product.image_url || "/placeholder.svg?height=180&width=280"}"
+                                 alt="${product.item_name}"
+                                 loading="lazy"
+                                 onerror="this.src='/placeholder.svg?height=180&width=280'; this.classList.add('image-error');" />
+                        </div>
+                        <div class="product-info">
+                            <h3>${product.item_name}</h3>
+                            <p class="product-description">${(product.description || "").substring(0, 80)}...</p>
+                            <div class="product-price" id="relatedPrice-${product.id}">₹${defaultVariant.price?.toFixed(2) || "N/A"}</div>
+                            ${
+                              variants.length > 0
+                                ? `
+                                        <select class="variants-dropdown" id="relatedVariant-${product.id}" onclick="event.stopPropagation();" onchange="updateRelatedProductPrice(${product.id}, this.value, this.options[this.selectedIndex].text)">
+                                            ${variants
+                                              .map(
+                                                (v, i) => `
+                                                        <option value="${v.price}" data-packing="${v.packing}" ${i === 0 ? "selected" : ""}>
+                                                            ${v.packing} - ₹${v.price.toFixed(2)}
+                                                        </option>
+                                                    `,
+                                              )
+                                              .join("")}
+                                        </select>
+                                    `
+                                : ""
+                            }
+                            <button class="add-to-cart" onclick="event.stopPropagation(); addToCartFromRelated(${product.id})">
+                                <i class="fas fa-plus"></i>
+                                Add to Cart
+                            </button>
+                        </div>
+                    </div>
+                `
+    })
     .join("")
 }
 
-// Utility functions - Preserved from your original code
-function changeProductImage(emoji) {
-  document.getElementById("mainProductImage").textContent = emoji
-
-  // Update active thumbnail
-  document.querySelectorAll(".thumbnail").forEach((thumb) => {
-    thumb.classList.remove("active")
-    if (thumb.textContent.trim() === emoji) {
-      thumb.classList.add("active")
-    }
-  })
+// Update related product price when variant changes
+function updateRelatedProductPrice(productId, price, optionText) {
+  const priceElement = document.getElementById(`relatedPrice-${productId}`)
+  if (priceElement) {
+    priceElement.textContent = `₹${Number.parseFloat(price).toFixed(2)}`
+  }
 }
 
-function selectVariant(element, price) {
+// Add to cart from related products
+function addToCartFromRelated(productId) {
+  const variantSelect = document.getElementById(`relatedVariant-${productId}`)
+  let variantInfo = null
+
+  if (variantSelect) {
+    const selectedOption = variantSelect.options[variantSelect.selectedIndex]
+    const variantPrice = Number.parseFloat(selectedOption.value)
+    const variantName = selectedOption.getAttribute("data-packing")
+
+    variantInfo = { name: variantName, price: variantPrice }
+  }
+
+  addToCart(productId, 1, variantInfo)
+}
+
+// Fixed variant selection function
+function selectVariant(element, price, packing) {
+  // Remove active class from all variants
   document.querySelectorAll(".variant-item").forEach((item) => {
     item.classList.remove("active")
   })
+
+  // Add active class to selected variant
   element.classList.add("active")
-  document.getElementById("currentPrice").textContent = `₹${price.toFixed(2)}`
+
+  // Update selected variant with proper data types
+  selectedVariant = {
+    price: Number.parseFloat(price),
+    packing: packing.toString(),
+  }
+
+  // Update price display
+  document.getElementById("currentPrice").textContent = `₹${selectedVariant.price.toFixed(2)}`
+
+  // Update specifications tab if visible
+  const specificationsTab = document.getElementById("specifications")
+  if (specificationsTab) {
+    const weightLi = specificationsTab.querySelector("li")
+    if (weightLi) {
+      weightLi.innerHTML = `<strong>Weight:</strong> ${selectedVariant.packing}`
+    }
+  }
+
+  // Log for debugging
+  console.log("Selected variant:", selectedVariant)
 }
 
 function updateQuantity(change) {
@@ -308,7 +426,6 @@ function updateQuantity(change) {
 
 function toggleWishlist(button) {
   button.classList.toggle("active")
-
   if (button.classList.contains("active")) {
     button.innerHTML = '<i class="fas fa-heart"></i>'
     showToast("Added to wishlist!", "success")
@@ -332,19 +449,23 @@ function switchTab(button, tabId) {
   document.getElementById(tabId).classList.add("active")
 }
 
-// Cart functions - Preserved from your original code
+// Cart functions
 function addToCartFromDetails(productId) {
   const quantity = Number.parseInt(document.getElementById("quantity").value)
-  const selectedVariant = document.querySelector(".variant-item.active")
-  let variantInfo = null
 
-  if (selectedVariant) {
-    const variantName = selectedVariant.querySelector(".variant-name").textContent
-    const variantPrice = Number.parseFloat(selectedVariant.querySelector(".variant-price").textContent.replace("₹", ""))
-    variantInfo = { name: variantName, price: variantPrice }
+  // Ensure we have a selected variant
+  if (!selectedVariant) {
+    // Get the first variant as fallback
+    const firstVariant = document.querySelector(".variant-item.active")
+    if (firstVariant) {
+      const price = firstVariant.querySelector(".variant-price").textContent.replace("₹", "")
+      const packing = firstVariant.querySelector(".variant-name").textContent
+      selectedVariant = { price: Number.parseFloat(price), packing: packing }
+    }
   }
 
-  addToCart(productId, quantity, variantInfo)
+  console.log("Adding to cart with variant:", selectedVariant)
+  addToCart(productId, quantity, selectedVariant)
 }
 
 async function addToCart(productId, quantity = 1, variantInfo = null) {
@@ -367,7 +488,7 @@ async function addToCart(productId, quantity = 1, variantInfo = null) {
 
     // If we don't have the current product, fetch it from the backend
     if (!product) {
-      const response = await fetch(`${API_BASE_URL}/products/${productId}`)
+      const response = await fetch(`/api/products/${productId}`)
       if (response.ok) {
         product = await response.json()
       } else {
@@ -380,12 +501,16 @@ async function addToCart(productId, quantity = 1, variantInfo = null) {
       return
     }
 
-    // Check if product already in cart
-    const existingItemIndex = cart.findIndex(
-      (item) =>
-        item.id === Number.parseInt(productId) &&
-        ((!item.variant && !variantInfo) || item.variant === variantInfo?.name),
-    )
+    const cart = JSON.parse(localStorage.getItem("cart")) || []
+
+    // Use the variant info passed or fall back to selected variant
+    const currentVariant = variantInfo || selectedVariant
+
+    // Create unique identifier for cart item (including variant)
+    const cartItemId = `${Number.parseInt(productId)}_${currentVariant?.packing || "default"}`
+
+    // Check if product with same variant already in cart
+    const existingItemIndex = cart.findIndex((item) => `${item.id}_${item.variant || "default"}` === cartItemId)
 
     if (existingItemIndex !== -1) {
       cart[existingItemIndex].quantity += quantity
@@ -394,13 +519,15 @@ async function addToCart(productId, quantity = 1, variantInfo = null) {
       const cartItem = {
         id: Number.parseInt(productId),
         name: product.item_name,
-        price: variantInfo ? variantInfo.price : product.price_01,
+        price: currentVariant ? currentVariant.price : product.price_01,
         description: product.description,
-        icon: product.icon || "🍪",
+        image: product.image_url,
         category: product.category,
         quantity: quantity,
-        variant: variantInfo ? variantInfo.name : null,
+        variant: currentVariant ? currentVariant.packing : null,
       }
+
+      console.log("Adding cart item:", cartItem)
       cart.push(cartItem)
     }
 
@@ -409,15 +536,18 @@ async function addToCart(productId, quantity = 1, variantInfo = null) {
 
     // Update cart count
     updateCartCount()
-    renderCartItems()
+    syncCartCounts()
+    updateCartDisplay()
 
     // Show success message
-    showToast(`${product.item_name} added to cart!`, "success")
+    const variantText = currentVariant?.packing || ""
+    const productName = variantText ? `${product.item_name} (${variantText})` : product.item_name
+    showToast(`${productName} added to cart!`, "success")
 
     // Add animation effect
     animateAddToCart(button)
 
-    // Try to sync with server if available - Preserved from your original code
+    // Try to sync with server if available
     try {
       const response = await fetch("/api/cart/sync", {
         method: "POST",
@@ -426,7 +556,6 @@ async function addToCart(productId, quantity = 1, variantInfo = null) {
         },
         body: JSON.stringify({ cart }),
       })
-
       if (response.ok) {
         const result = await response.json()
         if (result.data && result.data.cart) {
@@ -444,15 +573,23 @@ async function addToCart(productId, quantity = 1, variantInfo = null) {
 
 function animateAddToCart(button) {
   const cartIcon = document.querySelector(".cart-icon")
-  if (cartIcon && button) {
+  const mobileCartIcon = document.querySelector(".mobile-cart-icon")
+
+  if (cartIcon) {
     cartIcon.classList.add("pulse")
     setTimeout(() => cartIcon.classList.remove("pulse"), 300)
+  }
+
+  if (mobileCartIcon) {
+    mobileCartIcon.classList.add("pulse")
+    setTimeout(() => mobileCartIcon.classList.remove("pulse"), 300)
   }
 }
 
 function updateCartCount() {
+  const cart = JSON.parse(localStorage.getItem("cart")) || []
   const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0)
-  const cartCountElements = document.querySelectorAll("#cartCount, #cartBadge, #cartItemCount")
+  const cartCountElements = document.querySelectorAll("#cartCount, #cartBadge, #cartItemCount, #mobileCartCount")
 
   cartCountElements.forEach((element) => {
     if (element) {
@@ -469,78 +606,94 @@ function toggleCart() {
     popup.classList.remove("active")
   } else {
     popup.classList.add("active")
-    renderCartItems()
+    updateCartDisplay()
   }
 }
 
-function renderCartItems() {
+function updateCartDisplay() {
   const container = document.getElementById("cartItems")
+  const cart = JSON.parse(localStorage.getItem("cart")) || []
 
   if (cart.length === 0) {
     container.innerHTML = `
-            <div style="text-align: center; padding: 3rem;">
-                <i class="fas fa-shopping-cart" style="font-size: 4rem; color: #ddd; margin-bottom: 1rem;"></i>
-                <p style="color: #666; font-size: 1.1rem;">Your cart is empty</p>
-                <p style="color: #999; font-size: 0.9rem;">Add some delicious snacks to get started!</p>
+            <div class="empty-cart">
+                <div class="empty-cart-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <h4>Your cart is empty</h4>
+                <p>Add some delicious snacks to get started!</p>
+                <button class="browse-products-btn" onclick="toggleCart()">
+                    <i class="fas fa-plus"></i> Browse Products
+                </button>
             </div>
         `
-    document.getElementById("cartTotal").textContent = "0"
+
+    document.getElementById("cartTotal").textContent = "₹0"
+    document.getElementById("cartSubtotal").textContent = "₹0"
     return
   }
 
+  let totalAmount = 0
   const cartHTML = cart
-    .map(
-      (item) => `
-        <div class="cart-item" style="display: flex; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid var(--border-color);">
-            <div style="width: 60px; height: 60px; background: var(--gradient-secondary); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 2rem;">
-                ${item.icon}
-            </div>
-            <div style="flex: 1;">
-                <div style="font-weight: 600; color: var(--text-dark); margin-bottom: 0.25rem;">${item.name}</div>
-                ${item.variant ? `<div style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 0.5rem;">${item.variant}</div>` : ""}
-                <div style="font-weight: 600; color: var(--primary-color);">₹${item.price.toFixed(2)}</div>
-                <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem;">
-                    <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <button onclick="updateCartItemQuantity(${item.id}, '${item.variant || ""}', -1)" style="background: var(--gradient-primary); border: none; color: white; width: 30px; height: 30px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center;">-</button>
-                        <span style="font-weight: 600; min-width: 30px; text-align: center;">${item.quantity}</span>
-                        <button onclick="updateCartItemQuantity(${item.id}, '${item.variant || ""}', 1)" style="background: var(--gradient-primary); border: none; color: white; width: 30px; height: 30px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center;">+</button>
+    .map((item) => {
+      const itemTotal = item.price * item.quantity
+      totalAmount += itemTotal
+
+      return `
+                    <div class="cart-item">
+                        <div class="cart-item-image">
+                            <img src="${item.image || "/placeholder.svg?height=60&width=60"}" alt="${item.name}" />
+                        </div>
+                        <div class="cart-item-details">
+                            <div class="cart-item-name">${item.name}</div>
+                            ${item.variant ? `<div class="cart-item-variant">${item.variant}</div>` : ""}
+                            <div class="cart-item-price">
+                                <span class="cart-item-current-price">₹${itemTotal.toFixed(2)}</span>
+                            </div>
+                            <div class="cart-item-actions">
+                                <div class="quantity-control">
+                                    <button class="quantity-btn" onclick="updateCartItemQuantity(${item.id}, '${item.variant || ""}', -1)">-</button>
+                                    <input type="number" class="quantity-input" value="${item.quantity}" readonly>
+                                    <button class="quantity-btn" onclick="updateCartItemQuantity(${item.id}, '${item.variant || ""}', 1)">+</button>
+                                </div>
+                                <button class="remove-item-btn" onclick="removeFromCart(${item.id}, '${item.variant || ""}')" title="Remove item">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    <button onclick="removeFromCart(${item.id}, '${item.variant || ""}')" style="background: none; border: none; color: #e74c3c; cursor: pointer; font-size: 1rem; margin-left: auto;">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    `,
-    )
+                `
+    })
     .join("")
 
   container.innerHTML = cartHTML
 
-  // Update total
-  const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0)
-  document.getElementById("cartTotal").textContent = total.toFixed(2)
+  // Update totals
+  document.getElementById("cartTotal").textContent = `₹${totalAmount.toFixed(2)}`
+  document.getElementById("cartSubtotal").textContent = `₹${totalAmount.toFixed(2)}`
 }
 
 function updateCartItemQuantity(productId, variant, change) {
+  const cart = JSON.parse(localStorage.getItem("cart")) || []
   const itemIndex = cart.findIndex(
     (item) => item.id === Number.parseInt(productId) && ((!item.variant && !variant) || item.variant === variant),
   )
 
   if (itemIndex !== -1) {
     cart[itemIndex].quantity += change
-
     if (cart[itemIndex].quantity <= 0) {
       cart.splice(itemIndex, 1)
     }
 
     localStorage.setItem("cart", JSON.stringify(cart))
     updateCartCount()
-    renderCartItems()
+    syncCartCounts()
+    updateCartDisplay()
   }
 }
 
 function removeFromCart(productId, variant) {
+  const cart = JSON.parse(localStorage.getItem("cart")) || []
   const itemIndex = cart.findIndex(
     (item) => item.id === Number.parseInt(productId) && ((!item.variant && !variant) || item.variant === variant),
   )
@@ -548,50 +701,223 @@ function removeFromCart(productId, variant) {
   if (itemIndex !== -1) {
     const removedItem = cart[itemIndex]
     cart.splice(itemIndex, 1)
+
     localStorage.setItem("cart", JSON.stringify(cart))
     updateCartCount()
-    renderCartItems()
+    syncCartCounts()
+    updateCartDisplay()
+
     showToast(`${removedItem.name} removed from cart`, "info")
   }
 }
 
-// Navigation functions - Preserved from your original code
-function goToProduct(productId) {
-  window.location.href = `?id=${productId}`
-}
-
-function performSearch() {
-  const searchInput = document.getElementById("searchInput")
-  const query = searchInput.value.trim()
-
-  if (query) {
-    window.location.href = `/product?search=${encodeURIComponent(query)}`
+// Search functionality
+function handleSearchInput() {
+  const searchBox = document.getElementById("searchInput")
+  if (searchBox) {
+    window.currentSearchQuery = searchBox.value.toLowerCase().trim()
+    updateAutocomplete()
+    if (window.currentSearchQuery === "") {
+      hideAutocomplete()
+    }
   }
 }
 
-// Pincode functions - Matching index page functionality
-function openPincodeModal() {
-  document.getElementById("pincodeModal").classList.add("active")
-  document.body.style.overflow = "hidden"
+function handleMobileSearchInput() {
+  const mobileSearchBox = document.getElementById("mobileSearchBox")
+  if (mobileSearchBox) {
+    window.currentSearchQuery = mobileSearchBox.value.toLowerCase().trim()
+    updateMobileAutocomplete()
+    if (window.currentSearchQuery === "") {
+      hideMobileAutocomplete()
+    }
+  }
 }
 
-function closePincodeModal() {
-  document.getElementById("pincodeModal").classList.remove("active")
-  document.body.style.overflow = ""
+function showAutocomplete() {
+  const autocompleteDropdown = document.getElementById("autocompleteDropdown")
+  if (autocompleteDropdown && window.allProducts.length > 0) {
+    updateAutocomplete()
+  }
 }
 
-// Auth functions - Matching index page functionality
+function showMobileAutocomplete() {
+  const mobileAutocompleteDropdown = document.getElementById("mobileAutocompleteDropdown")
+  if (mobileAutocompleteDropdown && window.allProducts.length > 0) {
+    updateMobileAutocomplete()
+  }
+}
+
+function updateAutocomplete() {
+  const autocompleteDropdown = document.getElementById("autocompleteDropdown")
+  const searchBox = document.getElementById("searchInput")
+  if (!autocompleteDropdown || !searchBox) return
+
+  const query = searchBox.value.toLowerCase().trim()
+  if (query === "") {
+    hideAutocomplete()
+    return
+  }
+
+  // Get matching products
+  const matches = window.allProducts
+    .filter(
+      (product) =>
+        (product.item_name && product.item_name.toLowerCase().includes(query)) ||
+        (product.description && product.description.toLowerCase().includes(query)) ||
+        (product.category && product.category.toLowerCase().includes(query)),
+    )
+    .slice(0, 5)
+
+  if (matches.length === 0) {
+    hideAutocomplete()
+    return
+  }
+
+  autocompleteDropdown.innerHTML = matches
+    .map(
+      (product) => `
+                <div class="autocomplete-item" onclick="selectProduct('${product.item_name}')">
+                    <i class="fas fa-search"></i>
+                    <span>${product.item_name}</span>
+                </div>
+            `,
+    )
+    .join("")
+
+  autocompleteDropdown.classList.add("active")
+}
+
+function updateMobileAutocomplete() {
+  const mobileAutocompleteDropdown = document.getElementById("mobileAutocompleteDropdown")
+  const mobileSearchBox = document.getElementById("mobileSearchBox")
+  if (!mobileAutocompleteDropdown || !mobileSearchBox) return
+
+  const query = mobileSearchBox.value.toLowerCase().trim()
+  if (query === "") {
+    hideMobileAutocomplete()
+    return
+  }
+
+  // Get matching products
+  const matches = window.allProducts
+    .filter(
+      (product) =>
+        (product.item_name && product.item_name.toLowerCase().includes(query)) ||
+        (product.description && product.description.toLowerCase().includes(query)) ||
+        (product.category && product.category.toLowerCase().includes(query)),
+    )
+    .slice(0, 5)
+
+  if (matches.length === 0) {
+    hideMobileAutocomplete()
+    return
+  }
+
+  mobileAutocompleteDropdown.innerHTML = matches
+    .map(
+      (product) => `
+                <div class="autocomplete-item" onclick="selectMobileProduct('${product.item_name}')">
+                    <i class="fas fa-search"></i>
+                    <span>${product.item_name}</span>
+                </div>
+            `,
+    )
+    .join("")
+
+  mobileAutocompleteDropdown.classList.add("active")
+}
+
+function hideAutocomplete() {
+  const autocompleteDropdown = document.getElementById("autocompleteDropdown")
+  if (autocompleteDropdown) {
+    autocompleteDropdown.classList.remove("active")
+  }
+}
+
+function hideMobileAutocomplete() {
+  const mobileAutocompleteDropdown = document.getElementById("mobileAutocompleteDropdown")
+  if (mobileAutocompleteDropdown) {
+    mobileAutocompleteDropdown.classList.remove("active")
+  }
+}
+
+function selectProduct(productName) {
+  const searchBox = document.getElementById("searchInput")
+  const mobileSearchBox = document.getElementById("mobileSearchBox")
+
+  if (searchBox) {
+    searchBox.value = productName
+  }
+  if (mobileSearchBox) {
+    mobileSearchBox.value = productName
+  }
+
+  window.currentSearchQuery = productName.toLowerCase()
+  hideAutocomplete()
+  hideMobileAutocomplete()
+  performSearch()
+}
+
+function selectMobileProduct(productName) {
+  const mobileSearchBox = document.getElementById("mobileSearchBox")
+  const searchBox = document.getElementById("searchInput")
+
+  if (mobileSearchBox) {
+    mobileSearchBox.value = productName
+  }
+  if (searchBox) {
+    searchBox.value = productName
+  }
+
+  window.currentSearchQuery = productName.toLowerCase()
+  hideMobileAutocomplete()
+  hideAutocomplete()
+  performSearch()
+}
+
+function performSearch() {
+  const searchBox = document.getElementById("searchInput")
+  if (!searchBox) return
+
+  const query = searchBox.value.trim()
+  if (query) {
+    // Redirect to product page with search query
+    window.location.href = `/product.html?search=${encodeURIComponent(query)}`
+  }
+}
+
+function performMobileSearch() {
+  const mobileSearchBox = document.getElementById("mobileSearchBox")
+  if (!mobileSearchBox) return
+
+  const query = mobileSearchBox.value.trim()
+  if (query) {
+    // Redirect to product page with search query
+    window.location.href = `/product.html?search=${encodeURIComponent(query)}`
+  }
+}
+
+// Navigation functions
+function goToProduct(productId) {
+  window.location.href = `product-details.html?id=${productId}`
+}
+
+// Auth functions
 function toggleAuth() {
   try {
     const user = JSON.parse(localStorage.getItem("user"))
     if (user && user.first_name) {
-      const dropdown = document.getElementById("logoutDropdown")
-      if (dropdown) dropdown.classList.toggle("active")
+      const dropdown = document.getElementById("userDropdown")
+      if (dropdown) {
+        dropdown.classList.toggle("active")
+      }
     } else {
-      window.location.href = "/login"
+      window.location.href = "/login.html"
     }
   } catch (err) {
-    window.location.href = "/login"
+    console.error("Error in toggleAuth:", err)
+    window.location.href = "/login.html"
   }
 }
 
@@ -599,38 +925,47 @@ function confirmLogout() {
   localStorage.removeItem("user")
   const authText = document.getElementById("authText")
   if (authText) authText.textContent = "Sign In"
-  const dropdown = document.getElementById("logoutDropdown")
-  if (dropdown) dropdown.classList.remove("active")
-  window.location.href = "/"
-}
 
-function cancelLogout() {
-  const dropdown = document.getElementById("logoutDropdown")
+  const dropdown = document.getElementById("userDropdown")
   if (dropdown) dropdown.classList.remove("active")
+
+  showToast("Logged out successfully!", "success")
+  setTimeout(() => {
+    window.location.href = "/"
+  }, 1000)
 }
 
 function checkAuthState() {
   try {
     const user = JSON.parse(localStorage.getItem("user"))
     const authText = document.getElementById("authText")
+    const dropdownUserName = document.getElementById("dropdownUserName")
+    const dropdownUserEmail = document.getElementById("dropdownUserEmail")
 
-    if (!authText) return
-
-    if (user && typeof user.first_name === "string" && user.first_name.length > 0) {
-      authText.textContent = `Hi ${user.first_name}`
+    if (user && user.first_name) {
+      if (authText) {
+        authText.textContent = `Hi ${user.first_name}`
+      }
+      if (dropdownUserName) {
+        dropdownUserName.textContent = `${user.first_name} ${user.last_name || ""}`
+      }
+      if (dropdownUserEmail) {
+        dropdownUserEmail.textContent = user.email || "user@example.com"
+      }
     } else {
-      authText.textContent = "Sign In"
+      if (authText) {
+        authText.textContent = "Sign In"
+      }
     }
-  } catch (err) {
-    const authText = document.getElementById("authText")
-    if (authText) authText.textContent = "Sign In"
+  } catch (error) {
+    console.error("Error checking auth state:", error)
   }
 }
 
-// Utility functions - Preserved from your original code
+// Utility functions
 function updateBreadcrumb(productName) {
   document.getElementById("breadcrumbProduct").textContent = productName
-  document.title = `${productName} - SnackMart`
+  document.title = `${productName} - Gokhale Bandu`
 }
 
 function showError(title, message) {
@@ -642,7 +977,7 @@ function showError(title, message) {
             </div>
             <h2 class="error-title">${title}</h2>
             <p class="error-message">${message}</p>
-            <a href="/product" class="back-to-products">
+            <a href="/product.html" class="back-to-products">
                 <i class="fas fa-arrow-left"></i>
                 Back to Products
             </a>
@@ -651,37 +986,42 @@ function showError(title, message) {
 }
 
 function showToast(message, type = "success") {
-  const toast = document.getElementById("toast")
-  const toastMessage = toast.querySelector(".toast-message")
-  const toastIcon = toast.querySelector(".toast-icon")
+  const toastContainer = document.getElementById("toast")
+  if (!toastContainer) return
 
-  toastMessage.textContent = message
+  const toast = document.createElement("div")
+  toast.className = `toast ${type}`
+  toast.innerHTML = `
+        <i class="fas fa-${type === "success" ? "check-circle" : type === "error" ? "exclamation-circle" : "info-circle"}"></i>
+        ${message}
+    `
 
-  // Reset classes
-  toast.className = "toast"
+  toastContainer.appendChild(toast)
 
-  if (type === "success") {
-    toastIcon.className = "toast-icon fas fa-check-circle"
-  } else if (type === "error") {
-    toastIcon.className = "toast-icon fas fa-exclamation-circle"
-    toast.classList.add("error")
-  } else {
-    toastIcon.className = "toast-icon fas fa-info-circle"
-  }
-
-  toast.classList.add("show")
-
-  // Auto hide after 3 seconds
+  // Auto remove after 3 seconds
   setTimeout(() => {
-    toast.classList.remove("show")
+    toast.style.transform = "translateX(100%)"
+    setTimeout(() => {
+      if (toast.parentNode) {
+        toast.parentNode.removeChild(toast)
+      }
+    }, 400)
   }, 3000)
 }
 
 function hideToast() {
-  document.getElementById("toast").classList.remove("show")
+  const toasts = document.querySelectorAll(".toast")
+  toasts.forEach((toast) => {
+    toast.style.transform = "translateX(100%)"
+    setTimeout(() => {
+      if (toast.parentNode) {
+        toast.parentNode.removeChild(toast)
+      }
+    }, 400)
+  })
 }
 
-// Scroll to top functionality - Matching index page
+// Scroll to top functionality
 function initializeScrollToTop() {
   const scrollTopBtn = document.getElementById("scrollTop")
   if (!scrollTopBtn) return
@@ -702,58 +1042,92 @@ function scrollToTop() {
   })
 }
 
-// Event listeners - Enhanced to match index page functionality
-document.addEventListener("DOMContentLoaded", () => {
-  updateCartCount()
-  renderCartItems()
-
-  // Close cart when clicking outside
+// Setup click outside handlers
+function setupClickOutsideHandlers() {
   document.addEventListener("click", (e) => {
-    const cartPopup = document.getElementById("cartPopup")
-    const cartIcon = document.querySelector(".cart-icon")
+    // Handle auth dropdown
+    const authContainer = document.querySelector(".auth-container")
+    const mobileAuthContainer = document.querySelector(".mobile-auth-container")
+    const userDropdown = document.getElementById("userDropdown")
 
-    if (cartPopup.classList.contains("active") && !cartPopup.contains(e.target) && !cartIcon.contains(e.target)) {
-      toggleCart()
+    if (
+      authContainer &&
+      !authContainer.contains(e.target) &&
+      mobileAuthContainer &&
+      !mobileAuthContainer.contains(e.target)
+    ) {
+      if (userDropdown) {
+        userDropdown.classList.remove("active")
+      }
     }
+
+    // Handle autocomplete dropdown
+    const searchContainer = document.querySelector(".search-container")
+    const mobileSearchContainer = document.querySelector(".mobile-search-container")
+    if (searchContainer && !searchContainer.contains(e.target)) {
+      hideAutocomplete()
+    }
+    if (mobileSearchContainer && !mobileSearchContainer.contains(e.target)) {
+      hideMobileAutocomplete()
+    }
+
+    // Cart popup only closes with X button
   })
 
-  // Close auth dropdown when clicking outside
-  document.addEventListener("click", (e) => {
-    if (!e.target.closest(".auth-container")) {
-      const dropdown = document.getElementById("logoutDropdown")
-      if (dropdown) dropdown.classList.remove("active")
+  // Handle escape key
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      const cartPopup = document.getElementById("cartPopup")
+      if (cartPopup && cartPopup.classList.contains("active")) {
+        toggleCart()
+      }
+
+      const userDropdown = document.getElementById("userDropdown")
+      if (userDropdown && userDropdown.classList.contains("active")) {
+        userDropdown.classList.remove("active")
+      }
+
+      hideAutocomplete()
+      hideMobileAutocomplete()
     }
   })
+}
 
-  // Close pincode modal when clicking outside
-  document.addEventListener("click", (e) => {
-    const modal = document.getElementById("pincodeModal")
-    const modalContent = document.querySelector(".pincode-modal-content")
+// Handle window resize for responsive behavior
+window.addEventListener("resize", () => {
+  syncCartCounts()
 
-    if (modal.classList.contains("active") && !modalContent.contains(e.target)) {
-      closePincodeModal()
+  // Re-setup scroll handler for mobile
+  if (window.innerWidth <= 768) {
+    setupScrollHandler()
+  } else {
+    // Remove hidden class for desktop
+    const header = document.getElementById("header")
+    if (header) {
+      header.classList.remove("hidden")
     }
-  })
+  }
 })
 
-// Handle URL changes for navigation - Preserved from your original code
+// Utility function for debouncing
+function debounce(func, wait) {
+  let timeout
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout)
+      func(...args)
+    }
+    clearTimeout(timeout)
+    timeout = setTimeout(later, wait)
+  }
+}
+
+// Handle URL changes for navigation
 window.addEventListener("popstate", () => {
   loadProductDetails()
 })
 
-// Handle search on Enter key - Preserved from your original code
-document.addEventListener("DOMContentLoaded", () => {
-  const searchInput = document.getElementById("searchInput")
-  if (searchInput) {
-    searchInput.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") {
-        performSearch()
-      }
-    })
-  }
-})
-
-// Error handling for network requests - Preserved from your original code
+// Error handling for network requests
 window.addEventListener("online", () => {
   showToast("Connection restored", "success")
 })
@@ -762,18 +1136,14 @@ window.addEventListener("offline", () => {
   showToast("No internet connection", "error")
 })
 
-// Keyboard navigation support
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") {
-    const cartPopup = document.getElementById("cartPopup")
-    const pincodeModal = document.getElementById("pincodeModal")
-
-    if (cartPopup.classList.contains("active")) {
-      toggleCart()
+// Load all products for search functionality
+async function loadAllProducts() {
+  try {
+    const response = await fetch("/api/products")
+    if (response.ok) {
+      window.allProducts = await response.json()
     }
-
-    if (pincodeModal.classList.contains("active")) {
-      closePincodeModal()
-    }
+  } catch (error) {
+    console.error("Error loading products for search:", error)
   }
-})
+}

@@ -6,7 +6,7 @@
     <title>Products - Gokhale Bandu</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="static/css/product.css">
+    <link rel="stylesheet" href="/static/css/product.css">
 </head>
 <body>
     <!-- Toast Container -->
@@ -19,18 +19,20 @@
                 <!-- Logo with Welcome Message -->
                 <div class="logo-section">
                     <a href="/" class="logo">
-                        <img src="static/images/logo.png" alt="Gokhale Bandu Logo">
+                        <img src="/static/images/logo.png" alt="Gokhale Bandu Logo">
                     </a>
                     <div class="welcome-message" id="welcomeMessage">
                         <span class="welcome-text">Welcome to</span>
                         <span class="brand-name">Gokhale Bandu</span>
                     </div>
                 </div>
- <!-- Delivery Info -->
-                    <div class="delivery-info">
-                        <span class="delivery-label">Home Delivery Available</span>
-                        <span class="delivery-time">8:00 AM - 10:00 PM</span>
-                    </div>
+                
+                <!-- Delivery Info -->
+                <div class="delivery-info">
+                    <span class="delivery-label">Home Delivery Available</span>
+                    <span class="delivery-time">8:00 AM - 10:00 PM</span>
+                </div>
+                
                 <!-- Search Container -->
                 <div class="search-container">
                     <div class="search-wrapper">
@@ -46,7 +48,7 @@
                 <!-- User Actions -->
                 <div class="user-actions">
                     <!-- Orders Link - Desktop Only -->
-                    <a href="/orders.html?order_id=${userDetails.id}" class="nav-link desktop-only">
+                    <a href="/orders.html" class="nav-link desktop-only">
                         <i class="fas fa-receipt"></i>
                         <span>Orders</span>
                     </a>
@@ -55,7 +57,7 @@
                     <div class="auth-container">
                         <a href="#" class="nav-link" id="authButton" onclick="toggleAuth()">
                             <i class="fas fa-user"></i>
-                            <span id="authText" >Sign In</span>
+                            <span id="authText">Sign In</span>
                         </a>
 
                         <!-- User Dropdown -->
@@ -70,7 +72,7 @@
                                 </div>
                             </div>
                             <div class="dropdown-menu">
-                                <a href="/orders.html?order_id=${userDetails.id}" class="dropdown-item">
+                                <a href="/orders.html" class="dropdown-item">
                                     <i class="fas fa-receipt"></i>
                                     <span>My Orders</span>
                                 </a>
@@ -97,11 +99,51 @@
                 </div>
             </div>
 
+            <!-- Mobile Header -->
+            <div class="mobile-header mobile-only">
+                <div class="mobile-nav">
+                    <!-- Mobile Auth -->
+                    <div class="mobile-auth-container">
+                        <a href="#" class="mobile-nav-link" id="mobileAuthButton" onclick="toggleAuth()">
+<i class="fas fa-ellipsis-v"></i>
+                        </a>
+                    </div>
+
+                    <!-- Mobile Logo Section -->
+                    <div class="mobile-logo-section">
+                        <a href="/" class="mobile-logo">
+                            <img src="/static/images/logo.png" alt="Gokhale Bandu Logo">
+                        </a>
+                        <span class="mobile-brand-name">Gokhale Bandu</span>
+                    </div>
+
+                    <!-- Mobile Cart -->
+                    <div class="mobile-cart-section">
+                        <div class="mobile-cart-icon" id="mobileCartIcon" onclick="window.location.href='/cart'">
+                            <i class="fas fa-shopping-cart"></i>
+                            <span class="mobile-cart-count" id="mobileCartCount">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobile Search -->
+                <div class="mobile-search-container">
+                    <div class="mobile-search-wrapper">
+                        <input type="text" placeholder="Search for delicious snacks..." class="mobile-search-input" id="mobileSearchBox" autocomplete="off">
+                        <button class="mobile-search-button" onclick="performMobileSearch()">
+                            <i class="fas fa-search"></i>
+                        </button>
+                        <!-- Mobile Autocomplete Dropdown -->
+                        <div class="mobile-autocomplete-dropdown" id="mobileAutocompleteDropdown"></div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Categories Navigation - Mobile Only -->
             <div class="categories-nav mobile-only" id="categoriesNav">
                 <div class="categories-container">
                     <button class="category-item active" onclick="setQuickFilter('all')">
-                        <span>All Products</span>
+                        <span>All</span>
                     </button>
                     <button class="category-item" onclick="setQuickFilter('chewda')">
                         <span>Chewda</span>
@@ -118,8 +160,6 @@
                     <button class="category-item" onclick="setQuickFilter('snacks')">
                         <span>Snacks</span>
                     </button>
-                    
-                   
                 </div>
             </div>
         </div>
@@ -136,7 +176,6 @@
                 <i class="fas fa-times"></i>
             </button>
         </div>
-
         <div class="cart-summary-bar">
             <div class="cart-summary-item">
                 <span class="label">Total Items:</span>
@@ -147,7 +186,6 @@
                 <span class="value" id="cartSubtotal">₹0</span>
             </div>
         </div>
-
         <div class="cart-items" id="cartItems">
             <div class="empty-cart">
                 <div class="empty-cart-icon">
@@ -160,16 +198,11 @@
                 </button>
             </div>
         </div>
-
         <div class="cart-footer">
             <div class="cart-total">
                 <div class="total-row">
                     <span class="total-label">Total Amount:</span>
                     <span class="total-amount" id="cartTotal">₹0</span>
-                </div>
-                <div class="minimum-order">
-                    <i class="fas fa-info-circle"></i>
-                    Minimum Order: ₹500
                 </div>
             </div>
             <button class="checkout-btn" id="checkoutBtn" onclick="window.location.href='/cart'">
@@ -184,20 +217,6 @@
         <div class="hero-content">
             <h1 class="hero-title">Premium Traditional Snacks</h1>
             <p class="hero-subtitle">Authentic flavors from Amravati, crafted with love and finest ingredients</p>
-            <!-- <div class="hero-stats">
-                <div class="stat-item">
-                    <div class="stat-number">50+</div>
-                    <div class="stat-label">Premium Products</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">100%</div>
-                    <div class="stat-label">Natural Ingredients</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number">25+</div>
-                    <div class="stat-label">Years Experience</div>
-                </div>
-            </div> -->
         </div>
     </section>
 
@@ -206,7 +225,6 @@
         <div class="products-container">
             <!-- Desktop Quick Filter Buttons -->
             <div class="quick-filters desktop-only">
-                
                 <div class="filters-grid">
                     <button class="filter-btn active" onclick="setQuickFilter('all')">
                         <div class="filter-icon">
@@ -248,21 +266,13 @@
                             <span class="filter-title">Sweets</span>
                         </div>
                     </button>
-                    <button class="filter-btn" onclick="setQuickFilter('snacks')">
-                        <div class="filter-icon">
-                            <i class="fas fa-cookie-bite"></i>
-                        </div>
-                        <div class="filter-content">
-                            <span class="filter-title">Snacks</span>
-                        </div>
-                    </button>
                 </div>
             </div>
 
             <!-- Desktop Products Header -->
             <div class="products-header desktop-only">
                 <div class="products-count">
-                    Showing <strong id="currentPageCount">0</strong> /20product
+                    Showing <strong id="currentPageCount">0</strong> products
                 </div>
                 <div class="view-toggle">
                     <button class="view-btn active" onclick="setGridView(3)" title="Grid View">
@@ -309,7 +319,7 @@
                 <div class="footer-grid">
                     <div class="footer-section">
                         <div class="footer-logo">
-                            <img src="static/images/logo.png" alt="Gokhale Bandu" class="footer-logo-img">
+                            <img src="/static/images/logo.png" alt="Gokhale Bandu" class="footer-logo-img">
                             <div class="footer-brand">
                                 <span class="footer-brand-name">Gokhale Bandu</span>
                                 <span class="footer-brand-tagline">Traditional Taste, Modern Quality</span>
@@ -328,7 +338,7 @@
                         <h4>Quick Links</h4>
                         <ul>
                             <li><a href="/">Home</a></li>
-                            <li><a href="/product.html">Products</a></li>
+                            <li><a href="/products.html">Products</a></li>
                             <li><a href="/orders">Orders</a></li>
                             <li><a href="/contact.html">Contact</a></li>
                         </ul>
@@ -366,6 +376,6 @@
         </div>
     </footer>
 
-    <script src="static/js/products.js"></script>
+    <script src="/static/js/products.js"></script>
 </body>
 </html>

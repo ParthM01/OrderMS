@@ -15,11 +15,23 @@ from app.schemas.orders import OrderStatusUpdate
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
+# @router.get("/admin", response_class=HTMLResponse)
+# def admin_page(request: Request):
+
+#     if request.cookies.get("logged_in") != "true" :
+#       return RedirectResponse(url="/login", status_code=302)
+#     return templates.TemplateResponse("admin.html", {"request": request})
+
 @router.get("/admin", response_class=HTMLResponse)
 def admin_page(request: Request):
-     if request.cookies.get("logged_in") != "true":
-      return RedirectResponse(url="/login", status_code=302)
-     return templates.TemplateResponse("admin.html", {"request": request})
+    if request.cookies.get("logged_in") != "true":
+        return RedirectResponse(url="/login", status_code=302)
+    print("✔ Admin route hit")
+    user_role = request.cookies.get("user_role")
+    if user_role != "admin":
+        return HTMLResponse(content="Unauthorized", status_code=403)
+    
+    return templates.TemplateResponse("admin.html", {"request": request})
 
 # @router.get("/admin/products")
 # def admin_products(request: Request, db: Session = Depends(get_db)):

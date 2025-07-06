@@ -6,13 +6,15 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-background: linear-gradient(135deg, #cccccc, #ffffff);
+            background: linear-gradient(135deg, #cccccc, #ffffff);
             min-height: 100vh;
-            display: flex;
             align-items: center;
             justify-content: center;
             position: relative;
             overflow: hidden;
+            /* overflow-x: hidden; allow vertical scroll but prevent horizontal overflow */
+            display: flex;     /* remove flex here */
+            /* padding: 40px 0;  */
         }
 
         body::before {
@@ -364,27 +366,199 @@ background: linear-gradient(135deg, #cccccc, #ffffff);
         }
 
         @media (max-width: 768px) {
+            html, body {
+                height: auto;
+                min-height: 100%;
+                overflow-x: hidden ; /* allow vertical scroll */
+                display: block;   /* override flex on body */
+                scroll-behavior: smooth;
+              }
+            
+              body {
+                padding: 0px;
+              }
             .login-container {
-                grid-template-columns: 1fr;
-                margin: 1rem;
-                max-width: 400px;
+              display: block;
+              grid-template-columns: 1fr;
+              max-width: 95%;
+              margin: 20px;
+              box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+              animation: none;
             }
-
+          
             .login-left {
-                padding: 2rem;
-            }
+              
+              padding: 2rem;
+              order: 1; /* Show the form first on mobile */
 
-            .login-left h1 {
-                font-size: 2rem;
             }
-
+          
             .login-right {
-                padding: 2rem;
+              padding: 2rem;
+              order: 2;
+              /* display: none; */
+            }
+          
+            .login-left h1 {
+              font-size: 2rem;
+              display: none;
+            }
+          
+            .login-left p,
+            .login-header p {
+              font-size: 0.95rem;
+            }
+          
+            .login-icon {
+              font-size: 3rem;
+            }
+          
+            .login-btn {
+              font-size: 1rem;
+              padding: 12px;
+            }
+          
+            .form-group input {
+              padding: 12px 16px;
+            }
+          
+            .signup-link {
+              margin-top: 1.5rem;
+            }
+          
+            .back-home {
+              top: 10px;
+              left: 10px;
+              font-size: 0.9rem;
+            }
+        }
+          
+        /* @media (max-width: 480px) {
+            html, body {
+                height: auto;
+                min-height: 100%;
+                overflow-y: auto; 
+                display: block;   
+                scroll-behavior: smooth;
+              }
+            body {
+                padding: 20px;
             }
 
-            .back-home {
-                position: fixed;
-                top: 10px;
-                left: 10px;
+            .login-container {
+                animation: none;
+              }
+            .login-left h1 {
+              margin-bottom: 1rem;
+              font-size: 1.5rem;
             }
+          
+            .login-header h2 {
+              font-size: 1.5rem;
+            }
+          
+            .login-left,
+            .login-right {
+              padding: 1.5rem;
+            }
+          
+            .form-options {
+              flex-direction: column;
+              align-items: flex-start;
+              gap: 0.8rem;
+            }
+          
+            .login-btn {
+              width: 100%;
+            }
+          
+            .password-toggle {
+              right: 8px;
+            }
+        } */
+
+        @media (max-width: 480px) {
+            html, body {
+
+              /* height: px; */
+              /* min-height: 10%; */
+              margin: 0;
+              padding: 0;
+              overflow-x: hidden;
+              /* scroll-behavior: smooth; */
+              padding: 0;
+              margin: 0;
+            }
+          
+            body {
+              /* padding: 20px; */
+              display: block; /* Avoid flex on mobile to allow scrolling */
+              background: linear-gradient(135deg, #cccccc, #ffffff);
+            }
+          
+            .login-container {
+              padding: 0;
+              margin: 0;
+              /* margin-top: px; */
+              display: block;
+              /* justify-content: center;
+              align-items: center; */
+              width: 100vw;
+              /* max-width: 100%; */
+              /* max-height: 100%; */
+              margin: 0 auto;
+              box-shadow: none;
+              border-radius: 10px;
+              animation: none;
+              
+            }
+          
+            .login-left,
+            .login-right {
+              height: auto;
+              /* padding: 1rem; */
+              width: 100%;
+            }
+
+            input::placeholder {
+                font-size: 0.8rem;
+                color: #888;
+                opacity: 1; /* ensures it's visible on all browsers */
+              }
+            .forgot-password{
+                margin-top: 1rem;
+                gap: 1rem;
+            }
+          
+            .login-left {
+              order: 2;
+              display: none;
+            }
+          
+            .login-right {
+              order: 1;
+              /* padding: rem ; */
+              
+            }
+          
+            .login-left h1 {
+              font-size: 1.5rem;
+              margin-bottom: 1rem;
+            }
+          
+            .login-header h2 {
+              font-size: 1.5rem;
+            }
+            .back-home{
+                display: none;
+            }
+          
+            .form-options {
+              flex-direction: column;
+              align-items: flex-start;
+          }
+          
+        
+
+      
         }

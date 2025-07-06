@@ -53,33 +53,65 @@ def login_page(request: Request):
     print("✔ Login route hit")
     return templates.TemplateResponse("login.html", {"request": request})
 
+# @router.post("/login")
+# def login(
+#     mobile_number: str = Form(...),
+#     password: str = Form(...),
+#     db: Session = Depends(get_db)
+# ):
+#     user = db.query(User).filter(
+#         User.mobile_number == mobile_number,
+#         User.password == password
+#     ).first()
+
+#     print("✔ Login successful",user.role)
+#     if user and user.role == "admin":
+#         response = RedirectResponse(url="/admin", status_code=201)
+#         return response
+    
+#     if user:
+#         # Return user data in response
+#         response = JSONResponse(content={
+#             "message": "Login successful",
+#             "user": {
+#                 "first_name": user.first_name,
+#                 "id": user.id,
+#                 # "mobile_number": user.mobile_number,
+#                 # "email": user.email
+#             }
+#         })
+#         response.set_cookie(key="logged_in", value="true", httponly=True)
+#         response.set_cookie(key="user_role", value=user.role, httponly=True)
+#         print("✔ Login successful")
+#         return response
+
+#     return JSONResponse(content={"detail": "Invalid credentials"}, status_code=401)
+
 @router.post("/login")
 def login(
     mobile_number: str = Form(...),
     password: str = Form(...),
     db: Session = Depends(get_db)
 ):
-    user = db.query(User).filter(
-        User.mobile_number == mobile_number,
-        User.password == password
-    ).first()
+    user = db.query(User).filter(User.mobile_number == mobile_number).first()
 
-    if user:
-        # Return user data in response
-        response = JSONResponse(content={
-            "message": "Login successful",
-            "user": {
-                "first_name": user.first_name,
-                "id": user.id,
-                "mobile_number": user.mobile_number,
-                "email": user.email
-            }
-        })
-        response.set_cookie(key="logged_in", value="true", httponly=True)
-        print("✔ Login successful")
-        return response
+    if not user or user.password != password:  # replace with hashed password check
+        raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    return JSONResponse(content={"detail": "Invalid credentials"}, status_code=401)
+    # Set cookies and return success
+    response = JSONResponse(content={
+        "message": "Login successful",
+        "user": {
+            "first_name": user.first_name,
+            "role": user.role,
+            "id": user.id
+        }
+    })
+
+    response.set_cookie("logged_in", "true", httponly=True, secure=True)
+    response.set_cookie("user_role", user.role, httponly=True, secure=True)
+
+    return response
 
 @router.get("/logout")
 def logout():
@@ -101,7 +133,7 @@ def reset_password(req: ResetPasswordRequest, db: Session = Depends(get_db)):
 @router.get("/api/user/addresses")
 def get_user_saved_address(id: int, db: Session = Depends(get_db)):
     """Get all addresses for a user - FIXED"""
-    print(f"Getting addresses for user ID: {id}")
+    # print(f"Getting addresses for user ID: {id}")
     
     user = db.query(User).filter(User.id == id).first()
     if not user:
@@ -171,8 +203,9 @@ async def save_user_address(payload: UserAddressUpdate, db: Session = Depends(ge
         print(f"Error saving address: {e}")
         raise HTTPException(status_code=500, detail="Failed to save address")
 
-@router.delete("/api/user/address/{address_id}")
+@router.delete("/api/user/address")
 async def delete_user_address(address_id: int, user_id: int, db: Session = Depends(get_db)):
+    print("Deleting address with ID:", address_id)
     """Delete a specific address - IMPROVED"""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:

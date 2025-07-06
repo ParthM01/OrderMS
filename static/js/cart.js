@@ -282,10 +282,7 @@ function loadCart() {
       ${
         savings > 0
           ? `
-        <div class="summary-row">
-          <span>Savings</span>
-          <span class="amount savings">₹${savings.toFixed(2)}</span>
-        </div>
+        
       `
           : ""
       }
@@ -404,10 +401,7 @@ function renderSelectedAddress() {
           <p class="address-line">${selectedAddress.city}, ${selectedAddress.state} - ${selectedAddress.pincode}</p>
         </div>
       </div>
-      <div class="delivery-info-badge">
-        <i class="fas fa-truck"></i>
-        <span>Delivery in 30-45 mins</span>
-      </div>
+      
       <div class="address-selected-badge">
         <i class="fas fa-check-circle"></i>
         <span>Selected for Delivery</span>
@@ -474,9 +468,7 @@ function renderSavedAddresses() {
             }
           </div>
           <div class="address-actions">
-            <button class="edit-address-btn" onclick="editAddress(${index}); event.stopPropagation();">
-              <i class="fas fa-edit"></i>
-            </button>
+       
             <button class="delete-address-btn" onclick="deleteAddress(${index}); event.stopPropagation();">
               <i class="fas fa-trash"></i>
             </button>
@@ -487,6 +479,44 @@ function renderSavedAddresses() {
     .join("")
 }
 
+async function deleteAddress(index) {
+    try {
+      const addresses = JSON.parse(localStorage.getItem("addresses")) || []
+
+      const addressToDelete = addresses[index]
+      if (!addressToDelete || !addressToDelete.id) {
+        alert("Address not found or missing ID.")
+        return
+      }
+
+      const addressId = addressToDelete.id
+      console.log(addressId);
+      const response = await fetch(`/api/user/address`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          address_id: addressId,
+          user_id: userId,
+        })
+      })
+
+      if (response.ok) {
+        // Remove address from local state/UI
+        addresses.splice(index, 1)
+        localStorage.setItem("addresses", JSON.stringify(addresses))
+        alert("Address deleted successfully!")
+        location.reload() // Or re-render address list
+      } else {
+        const error = await response.json()
+        alert("Failed to delete address: " + error.detail)
+      }
+    } catch (err) {
+      console.error("Error deleting address:", err)
+      alert("Something went wrong while deleting the address.")
+    }
+  }
 // Address modal functions
 function openAddressModal() {
   const modal = document.getElementById("addressModal")
@@ -661,9 +691,10 @@ async function deleteAddress(index, showConfirm = true) {
   }
 
   try {
-    await fetch(`/api/user/address/${deletedAddress.id}`, {
-      method: "DELETE",
-    })
+    await fetch(`/api/user/address?address_id=${deletedAddress.id}&user_id=${userDetails.id}`, {
+      method: "DELETE"
+    });
+    
   } catch (error) {
     console.error("Error deleting address:", error)
   }

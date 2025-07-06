@@ -43,8 +43,13 @@ document.addEventListener("DOMContentLoaded", () => {
           successText.textContent = result.message || "Login successful!";
           successMessage.style.display = "block";
 
-          setTimeout(() => {
+          if (result.user.role === "admin") {
+            window.location.href = "/admin";
+          } else {
             window.location.href = "/";
+          } 
+          setTimeout(() => {
+            successMessage.style.display = "none";
           }, 1000);
         } else {
           errorText.textContent = "Invalid user data received";

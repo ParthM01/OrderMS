@@ -129,7 +129,7 @@ class OrdersManager {
     const times = {
       placed: "Processing order...",
       confirmed: "Preparing your order",
-      "in-process": "Being prepared",
+      inprocess: "Being prepared",
       dispatched: "Out for delivery",
       delivered: "Delivered",
       completed: "Completed",
@@ -144,7 +144,7 @@ class OrdersManager {
     const progress = {
       placed: 20,
       confirmed: 40,
-      "in-process": 60,
+      inprocess: 60,
       dispatched: 80,
       delivered: 100,
       completed: 100,
@@ -206,7 +206,7 @@ class OrdersManager {
                       </div>
                   </div>
   
-                  ${showProgress && ["confirmed", "in-process", "dispatched", "delivered"].includes(order.order_status) ? this.renderProgressIndicator(order) : ""}
+                  ${showProgress && ["confirmed", "inprocess", "dispatched", "delivered"].includes(order.order_status) ? this.renderProgressIndicator(order) : ""}
   
                   <div class="order-items">
                       <div class="order-items-preview">
@@ -263,7 +263,7 @@ class OrdersManager {
 
   renderProgressIndicator(order) {
     // Updated progression: placed → confirmed → in process → dispatched → delivered
-    const steps = ["placed", "confirmed", "in-process", "dispatched", "delivered"]
+    const steps = ["placed", "confirmed", "inprocess", "dispatched", "delivered"]
     const currentStepIndex = steps.indexOf(order.order_status)
 
     return `
@@ -309,7 +309,7 @@ class OrdersManager {
     const icons = {
       placed: "clock",
       confirmed: "check",
-      "in-process": "cog",
+      inprocess: "cog",
       dispatched: "truck",
       delivered: "box",
       completed: "check-double",
@@ -582,7 +582,7 @@ function openOrderModal(orderId) {
               </div>
               
               ${
-                ["confirmed", "in-process", "dispatched", "delivered"].includes(order.order_status)
+                ["confirmed", "inprocess", "dispatched", "delivered"].includes(order.order_status)
                   ? `
               <!-- Order Progress -->
               <div class="detail-section">

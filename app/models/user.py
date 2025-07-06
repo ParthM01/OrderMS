@@ -14,5 +14,6 @@ class User(Base):
     address = Column(JSON, default=list)
     customer_id = Column(String(20), unique=True, index=True)
     internal_id = Column(String(36), unique=True)
+    role = Column(String(20), default="user")
 
     orders = relationship("Order", back_populates="user")

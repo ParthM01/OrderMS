@@ -1,489 +1,3 @@
-// // Global variables
-// let currentProduct = null
-// let cart = JSON.parse(localStorage.getItem("cart")) || []
-// let relatedProducts = []
-
-// // API Configuration
-// // const API_BASE_URL = "https://fakestoreapi.com" // Using fake store API for demo
-// const PRODUCTS_API = "/api/products"
-
-// // Initialize the page 
-// document.addEventListener("DOMContentLoaded", () => {
-//   initializePage()
-// })
-
-// async function initializePage() {
-//   try {
-//     // Get product ID from URL parameters
-//     const urlParams = new URLSearchParams(window.location.search)
-//     const productId = urlParams.get("id") || "1" // Default to product 1 if no ID
-
-//     // Load product details
-//     await loadProductDetails(productId)
-
-//     // Load related products
-//     await loadRelatedProducts()
-
-//     // Update cart display
-//     updateCartDisplay()
-//   } catch (error) {
-//     console.error("Error initializing page:", error)
-//     showError("Failed to load product details. Please try again.")
-//   }
-// }
-
-// // Fetch product details from API
-// async function loadProductDetails(productId) {
-//   try {
-//     const response = await fetch(`${PRODUCTS_API}/${productId}`)
-//     if (!response.ok) throw new Error("Product not found")
-
-//     const product = await response.json()
-//     currentProduct = transformProductData(product)
-
-//     displayProductDetails(currentProduct)
-//     updateBreadcrumb(currentProduct.title)
-//   } catch (error) {
-//     console.error("Error loading product:", error)
-//     showError("Product not found or failed to load.")
-//   }
-// }
-
-// // Transform API data to our format
-// function transformProductData(apiProduct) {
-//   return {
-//     id: apiProduct.id,
-//     title: apiProduct.title,
-//     description: apiProduct.description,
-//     price: Math.round(apiProduct.price * 80), // Convert to INR approximately
-//     originalPrice: Math.round(apiProduct.price * 100), // Show discount
-//     image: apiProduct.image,
-//     images: [apiProduct.image, apiProduct.image, apiProduct.image], // Duplicate for demo
-//     category: apiProduct.category,
-//     rating: {
-//       rate: apiProduct.rating.rate,
-//       count: apiProduct.rating.count,
-//     },
-//     inStock: true,
-//     isNew: Math.random() > 0.7,
-//     onSale: Math.random() > 0.5,
-//     details: {
-//       Brand: "SnackMart Premium",
-//       Category: apiProduct.category,
-//       Weight: "250g",
-//       "Shelf Life": "6 months",
-//       Storage: "Store in cool, dry place",
-//       Ingredients: "Premium quality ingredients",
-//     },
-//   }
-// }
-
-// // Display product details
-// function displayProductDetails(product) {
-//   // Hide loading state
-//   document.getElementById("loadingState").style.display = "none"
-//   document.getElementById("productContent").style.display = "block"
-
-//   // Update product images
-//   updateProductImages(product)
-
-//   // Update product info
-//   document.getElementById("productTitle").textContent = product.title
-//   document.getElementById("productDescription").textContent = product.description
-
-//   // Update pricing
-//   updateProductPricing(product)
-
-//   // Update rating
-//   updateProductRating(product.rating)
-
-//   // Update product details
-//   updateProductDetails(product.details)
-
-//   // Update badges
-//   updateProductBadges(product)
-// }
-
-// function updateProductImages(product) {
-//   const mainImage = document.getElementById("mainProductImage")
-//   mainImage.src = product.image
-//   mainImage.alt = product.title
-
-//   const thumbnailContainer = document.getElementById("thumbnailImages")
-//   thumbnailContainer.innerHTML = ""
-
-//   product.images.forEach((image, index) => {
-//     const thumbnail = document.createElement("div")
-//     thumbnail.className = `thumbnail ${index === 0 ? "active" : ""}`
-//     thumbnail.innerHTML = `<img src="${image}" alt="Product image ${index + 1}">`
-//     thumbnail.onclick = () => changeMainImage(image, thumbnail)
-//     thumbnailContainer.appendChild(thumbnail)
-//   })
-// }
-
-// function changeMainImage(imageSrc, thumbnailElement) {
-//   document.getElementById("mainProductImage").src = imageSrc
-
-//   // Update active thumbnail
-//   document.querySelectorAll(".thumbnail").forEach((thumb) => thumb.classList.remove("active"))
-//   thumbnailElement.classList.add("active")
-// }
-
-// function updateProductPricing(product) {
-//   document.getElementById("currentPrice").textContent = `₹${product.price}`
-
-//   if (product.originalPrice && product.originalPrice > product.price) {
-//     const originalPriceEl = document.getElementById("originalPrice")
-//     const discountBadgeEl = document.getElementById("discountBadge")
-//     const savingsEl = document.getElementById("savings")
-//     const savingsAmountEl = document.getElementById("savingsAmount")
-
-//     originalPriceEl.textContent = `₹${product.originalPrice}`
-//     originalPriceEl.style.display = "inline"
-
-//     const discount = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
-//     discountBadgeEl.textContent = `${discount}% OFF`
-//     discountBadgeEl.style.display = "inline"
-
-//     const savings = product.originalPrice - product.price
-//     savingsAmountEl.textContent = savings
-//     savingsEl.style.display = "block"
-//   }
-// }
-
-// function updateProductRating(rating) {
-//   const starsContainer = document.getElementById("productStars")
-//   const ratingText = document.getElementById("ratingText")
-
-//   starsContainer.innerHTML = ""
-//   const fullStars = Math.floor(rating.rate)
-//   const hasHalfStar = rating.rate % 1 >= 0.5
-
-//   for (let i = 0; i < 5; i++) {
-//     const star = document.createElement("i")
-//     if (i < fullStars) {
-//       star.className = "fas fa-star star"
-//     } else if (i === fullStars && hasHalfStar) {
-//       star.className = "fas fa-star-half-alt star"
-//     } else {
-//       star.className = "far fa-star star empty"
-//     }
-//     starsContainer.appendChild(star)
-//   }
-
-//   ratingText.textContent = `${rating.rate}/5 (${rating.count} reviews)`
-// }
-
-// function updateProductDetails(details) {
-//   const detailsList = document.getElementById("productDetailsList")
-//   detailsList.innerHTML = ""
-
-//   Object.entries(details).forEach(([key, value]) => {
-//     const listItem = document.createElement("li")
-//     listItem.innerHTML = `<strong>${key}:</strong> <span>${value}</span>`
-//     detailsList.appendChild(listItem)
-//   })
-// }
-
-// function updateProductBadges(product) {
-//   const newBadge = document.getElementById("newBadge")
-//   const saleBadge = document.getElementById("saleBadge")
-
-//   newBadge.style.display = product.isNew ? "inline" : "none"
-//   saleBadge.style.display = product.onSale ? "inline" : "none"
-// }
-
-// function updateBreadcrumb(productTitle) {
-//   document.getElementById("breadcrumbProduct").textContent = productTitle
-// }
-
-// // Load related products
-// async function loadRelatedProducts() {
-//   try {
-//     const response = await fetch(`${PRODUCTS_API}?limit=4`)
-//     const products = await response.json()
-
-//     relatedProducts = products.map(transformProductData)
-//     displayRelatedProducts(relatedProducts)
-//   } catch (error) {
-//     console.error("Error loading related products:", error)
-//     document.getElementById("relatedGrid").innerHTML = "<p>Failed to load related products.</p>"
-//   }
-// }
-
-// function displayRelatedProducts(products) {
-//   const relatedGrid = document.getElementById("relatedGrid")
-//   relatedGrid.innerHTML = ""
-
-//   products.forEach((product) => {
-//     const productCard = createProductCard(product)
-//     relatedGrid.appendChild(productCard)
-//   })
-// }
-
-// function createProductCard(product) {
-//   const card = document.createElement("div")
-//   card.className = "product-card"
-//   card.onclick = () => (window.location.href = `?id=${product.id}`)
-
-//   const stars = generateStarsHTML(product.rating.rate)
-
-//   card.innerHTML = `
-//         <img src="${product.image}" alt="${product.title}" class="product-card-image">
-//         <div class="product-card-content">
-//             <h3 class="product-card-title">${product.title}</h3>
-//             <div class="product-card-price">₹${product.price}</div>
-//             <div class="product-card-rating">
-//                 ${stars}
-//                 <span>(${product.rating.count})</span>
-//             </div>
-//         </div>
-//     `
-
-//   return card
-// }
-
-// function generateStarsHTML(rating) {
-//   let starsHTML = ""
-//   const fullStars = Math.floor(rating)
-//   const hasHalfStar = rating % 1 >= 0.5
-
-//   for (let i = 0; i < 5; i++) {
-//     if (i < fullStars) {
-//       starsHTML += '<i class="fas fa-star star"></i>'
-//     } else if (i === fullStars && hasHalfStar) {
-//       starsHTML += '<i class="fas fa-star-half-alt star"></i>'
-//     } else {
-//       starsHTML += '<i class="far fa-star star empty"></i>'
-//     }
-//   }
-
-//   return starsHTML
-// }
-
-// // Quantity controls
-// function increaseQuantity() {
-//   const quantityInput = document.getElementById("quantity")
-//   const currentValue = Number.parseInt(quantityInput.value)
-//   const maxValue = Number.parseInt(quantityInput.max)
-
-//   if (currentValue < maxValue) {
-//     quantityInput.value = currentValue + 1
-//   }
-// }
-
-// function decreaseQuantity() {
-//   const quantityInput = document.getElementById("quantity")
-//   const currentValue = Number.parseInt(quantityInput.value)
-//   const minValue = Number.parseInt(quantityInput.min)
-
-//   if (currentValue > minValue) {
-//     quantityInput.value = currentValue - 1
-//   }
-// }
-
-// // Cart functionality
-// function addToCart() {
-//   if (!currentProduct) return
-
-//   const quantity = Number.parseInt(document.getElementById("quantity").value)
-//   const existingItem = cart.find((item) => item.id === currentProduct.id)
-
-//   if (existingItem) {
-//     existingItem.quantity += quantity
-//   } else {
-//     cart.push({
-//       id: currentProduct.id,
-//       title: currentProduct.title,
-//       price: currentProduct.price,
-//       image: currentProduct.image,
-//       quantity: quantity,
-//     })
-//   }
-
-//   localStorage.setItem("cart", JSON.stringify(cart))
-//   updateCartDisplay()
-//   showToast("Item added to cart!")
-// }
-
-// function buyNow() {
-//   addToCart()
-//   // Redirect to checkout or show checkout modal
-//   alert("Redirecting to checkout...")
-// }
-
-// function updateCartDisplay() {
-//   const cartCount = cart.reduce((total, item) => total + item.quantity, 0)
-//   const cartTotal = cart.reduce((total, item) => total + item.price * item.quantity, 0)
-
-//   document.getElementById("cartCount").textContent = cartCount
-//   document.getElementById("cartBadge").textContent = cartCount
-//   document.getElementById("cartTotal").textContent = cartTotal
-
-//   // Update cart content
-//   const cartContent = document.getElementById("cartContent")
-
-//   if (cart.length === 0) {
-//     cartContent.innerHTML = `
-//             <div class="empty-cart">
-//                 <div class="empty-icon">🛒</div>
-//                 <h4>Your cart is empty</h4>
-//                 <p>Add some delicious snacks to get started!</p>
-//             </div>
-//         `
-//     document.getElementById("checkoutBtn").disabled = true
-//   } else {
-//     cartContent.innerHTML = cart
-//       .map(
-//         (item) => `
-//             <div class="cart-item">
-//                 <img src="${item.image}" alt="${item.title}" class="cart-item-image">
-//                 <div class="cart-item-details">
-//                     <div class="cart-item-title">${item.title}</div>
-//                     <div class="cart-item-price">₹${item.price}</div>
-//                     <div class="cart-item-quantity">
-//                         <button onclick="updateCartItemQuantity(${item.id}, -1)">-</button>
-//                         <span>${item.quantity}</span>
-//                         <button onclick="updateCartItemQuantity(${item.id}, 1)">+</button>
-//                         <button onclick="removeFromCart(${item.id})" style="margin-left: 1rem; color: #ff6b6b;">
-//                             <i class="fas fa-trash"></i>
-//                         </button>
-//                     </div>
-//                 </div>
-//             </div>
-//         `,
-//       )
-//       .join("")
-//     document.getElementById("checkoutBtn").disabled = false
-//   }
-// }
-
-// function updateCartItemQuantity(productId, change) {
-//   const item = cart.find((item) => item.id === productId)
-//   if (item) {
-//     item.quantity += change
-//     if (item.quantity <= 0) {
-//       removeFromCart(productId)
-//     } else {
-//       localStorage.setItem("cart", JSON.stringify(cart))
-//       updateCartDisplay()
-//     }
-//   }
-// }
-
-// function removeFromCart(productId) {
-//   cart = cart.filter((item) => item.id !== productId)
-//   localStorage.setItem("cart", JSON.stringify(cart))
-//   updateCartDisplay()
-//   showToast("Item removed from cart")
-// }
-
-// // Cart sidebar toggle
-// function toggleCart() {
-//   const cartSidebar = document.getElementById("cartSidebar")
-//   const cartOverlay = document.getElementById("cartOverlay")
-
-//   cartSidebar.classList.toggle("open")
-//   cartOverlay.classList.toggle("active")
-// }
-
-// // Toast notification
-// function showToast(message) {
-//   const toast = document.getElementById("toast")
-//   const toastMessage = document.querySelector(".toast-message")
-
-//   toastMessage.textContent = message
-//   toast.classList.add("show")
-
-//   setTimeout(() => {
-//     toast.classList.remove("show")
-//   }, 3000)
-// }
-
-// function hideToast() {
-//   document.getElementById("toast").classList.remove("show")
-// }
-
-// // Location modal
-// function openLocationModal() {
-//   document.getElementById("locationModal").classList.add("active")
-// }
-
-// function closeLocationModal() {
-//   document.getElementById("locationModal").classList.remove("active")
-// }
-
-// function updateLocation() {
-//   const pincode = document.getElementById("pincodeInput").value
-//   if (pincode) {
-//     // Update location display (simplified)
-//     document.querySelector(".pincode").textContent = pincode
-//     document.querySelector(".location-name").textContent = "Updated Location"
-//     closeLocationModal()
-//     showToast("Location updated successfully!")
-//   }
-// }
-
-// // Search functionality
-// function performSearch() {
-//   const searchTerm = document.getElementById("searchInput").value
-//   if (searchTerm.trim()) {
-//     // Redirect to search results page
-//     window.location.href = `/search?q=${encodeURIComponent(searchTerm)}`
-//   }
-// }
-
-// // Handle search on Enter key
-// document.getElementById("searchInput").addEventListener("keypress", (e) => {
-//   if (e.key === "Enter") {
-//     performSearch()
-//   }
-// })
-
-// // Error handling
-// function showError(message) {
-//   const productContainer = document.getElementById("productContainer")
-//   productContainer.innerHTML = `
-//         <div class="error-state">
-//             <div class="error-icon">⚠️</div>
-//             <h3>Oops! Something went wrong</h3>
-//             <p>${message}</p>
-//             <button class="btn btn-primary" onclick="location.reload()">Try Again</button>
-//         </div>
-//     `
-// }
-
-// // Checkout functionality
-// document.getElementById("checkoutBtn").addEventListener("click", () => {
-//   if (cart.length > 0) {
-//     alert("Proceeding to checkout...\nTotal: ₹" + cart.reduce((total, item) => total + item.price * item.quantity, 0))
-//     // Here you would typically redirect to a checkout page
-//   }
-// })
-
-// // Close modals on escape key
-// document.addEventListener("keydown", (e) => {
-//   if (e.key === "Escape") {
-//     closeLocationModal()
-//     if (document.getElementById("cartSidebar").classList.contains("open")) {
-//       toggleCart()
-//     }
-//   }
-// })
-
-// // Handle window resize for responsive cart
-// window.addEventListener("resize", () => {
-//   if (window.innerWidth > 768) {
-//     const cartSidebar = document.getElementById("cartSidebar")
-//     if (cartSidebar.classList.contains("open")) {
-//       cartSidebar.style.width = "400px"
-//     }
-//   }
-// })
-
-// Make functions globally accessible
-// Global variables - Keep your existing structure
-// Global variables
 // Global variables
 window.allProducts = []
 window.filteredProducts = []
@@ -491,6 +5,7 @@ window.currentPage = 1
 window.productsPerPage = 12
 window.currentCategory = "all"
 window.currentSearchQuery = ""
+window.lastScrollY = 0
 
 // Initialize when DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
@@ -498,12 +13,15 @@ document.addEventListener("DOMContentLoaded", () => {
   checkAuthState()
   updateCartCount()
   fetchAndRenderProducts()
+  setupScrollHandler()
 })
 
 // Initialize website functionality
 function initializeWebsite() {
-  // Set up search functionality
+  // Set up search functionality for both desktop and mobile
   const searchBox = document.getElementById("searchBox")
+  const mobileSearchBox = document.getElementById("mobileSearchBox")
+
   if (searchBox) {
     searchBox.addEventListener("input", debounce(handleSearchInput, 300))
     searchBox.addEventListener("keypress", (e) => {
@@ -514,11 +32,70 @@ function initializeWebsite() {
     searchBox.addEventListener("focus", showAutocomplete)
   }
 
+  if (mobileSearchBox) {
+    mobileSearchBox.addEventListener("input", debounce(handleMobileSearchInput, 300))
+    mobileSearchBox.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        performMobileSearch()
+      }
+    })
+    mobileSearchBox.addEventListener("focus", showMobileAutocomplete)
+  }
+
   // Update welcome message
   updateWelcomeMessage()
 
   // Set up click outside handlers
   setupClickOutsideHandlers()
+
+  // Sync mobile and desktop cart counts
+  syncCartCounts()
+}
+
+// Setup scroll handler for mobile navbar hide/show
+function setupScrollHandler() {
+  if (window.innerWidth <= 768) {
+    let ticking = false
+
+    function updateNavbar() {
+      const header = document.getElementById("header")
+      const currentScrollY = window.scrollY
+
+      if (currentScrollY > window.lastScrollY && currentScrollY > 100) {
+        // Scrolling down
+        header.classList.add("hidden")
+      } else {
+        // Scrolling up
+        header.classList.remove("hidden")
+      }
+
+      window.lastScrollY = currentScrollY
+      ticking = false
+    }
+
+    window.addEventListener("scroll", () => {
+      if (!ticking) {
+        requestAnimationFrame(updateNavbar)
+        ticking = true
+      }
+    })
+  }
+}
+
+// Sync cart counts between mobile and desktop
+function syncCartCounts() {
+  const cart = JSON.parse(localStorage.getItem("cart")) || []
+  const totalCount = cart.reduce((sum, item) => sum + item.quantity, 0)
+
+  const cartCountElement = document.getElementById("cartCount")
+  const mobileCartCountElement = document.getElementById("mobileCartCount")
+
+  if (cartCountElement) {
+    cartCountElement.textContent = totalCount
+  }
+  if (mobileCartCountElement) {
+    mobileCartCountElement.textContent = totalCount
+  }
 }
 
 // Check authentication state and update UI
@@ -526,6 +103,7 @@ function checkAuthState() {
   try {
     const user = JSON.parse(localStorage.getItem("user"))
     const authText = document.getElementById("authText")
+    const mobileAuthButton = document.getElementById("mobileAuthButton")
     const dropdownUserName = document.getElementById("dropdownUserName")
     const dropdownUserEmail = document.getElementById("dropdownUserEmail")
 
@@ -640,11 +218,33 @@ function handleSearchInput() {
   }
 }
 
+// Handle mobile search input
+function handleMobileSearchInput() {
+  const mobileSearchBox = document.getElementById("mobileSearchBox")
+  if (mobileSearchBox) {
+    window.currentSearchQuery = mobileSearchBox.value.toLowerCase().trim()
+    updateMobileAutocomplete()
+
+    if (window.currentSearchQuery === "") {
+      hideMobileAutocomplete()
+      applyFilters()
+    }
+  }
+}
+
 // Show autocomplete dropdown
 function showAutocomplete() {
   const autocompleteDropdown = document.getElementById("autocompleteDropdown")
   if (autocompleteDropdown && window.allProducts.length > 0) {
     updateAutocomplete()
+  }
+}
+
+// Show mobile autocomplete dropdown
+function showMobileAutocomplete() {
+  const mobileAutocompleteDropdown = document.getElementById("mobileAutocompleteDropdown")
+  if (mobileAutocompleteDropdown && window.allProducts.length > 0) {
+    updateMobileAutocomplete()
   }
 }
 
@@ -691,6 +291,49 @@ function updateAutocomplete() {
   autocompleteDropdown.classList.add("active")
 }
 
+// Update mobile autocomplete suggestions
+function updateMobileAutocomplete() {
+  const mobileAutocompleteDropdown = document.getElementById("mobileAutocompleteDropdown")
+  const mobileSearchBox = document.getElementById("mobileSearchBox")
+
+  if (!mobileAutocompleteDropdown || !mobileSearchBox) return
+
+  const query = mobileSearchBox.value.toLowerCase().trim()
+
+  if (query === "") {
+    hideMobileAutocomplete()
+    return
+  }
+
+  // Get matching products
+  const matches = window.allProducts
+    .filter(
+      (product) =>
+        (product.item_name && product.item_name.toLowerCase().includes(query)) ||
+        (product.description && product.description.toLowerCase().includes(query)) ||
+        (product.category && product.category.toLowerCase().includes(query)),
+    )
+    .slice(0, 5) // Limit to 5 suggestions
+
+  if (matches.length === 0) {
+    hideMobileAutocomplete()
+    return
+  }
+
+  mobileAutocompleteDropdown.innerHTML = matches
+    .map(
+      (product) => `
+    <div class="autocomplete-item" onclick="selectMobileProduct('${product.item_name}')">
+      <i class="fas fa-search"></i>
+      <span>${product.item_name}</span>
+    </div>
+  `,
+    )
+    .join("")
+
+  mobileAutocompleteDropdown.classList.add("active")
+}
+
 // Hide autocomplete dropdown
 function hideAutocomplete() {
   const autocompleteDropdown = document.getElementById("autocompleteDropdown")
@@ -699,15 +342,48 @@ function hideAutocomplete() {
   }
 }
 
+// Hide mobile autocomplete dropdown
+function hideMobileAutocomplete() {
+  const mobileAutocompleteDropdown = document.getElementById("mobileAutocompleteDropdown")
+  if (mobileAutocompleteDropdown) {
+    mobileAutocompleteDropdown.classList.remove("active")
+  }
+}
+
 // Select product from autocomplete
 function selectProduct(productName) {
   const searchBox = document.getElementById("searchBox")
+  const mobileSearchBox = document.getElementById("mobileSearchBox")
+
   if (searchBox) {
     searchBox.value = productName
-    window.currentSearchQuery = productName.toLowerCase()
-    hideAutocomplete()
-    performSearch()
   }
+  if (mobileSearchBox) {
+    mobileSearchBox.value = productName
+  }
+
+  window.currentSearchQuery = productName.toLowerCase()
+  hideAutocomplete()
+  hideMobileAutocomplete()
+  performSearch()
+}
+
+// Select product from mobile autocomplete
+function selectMobileProduct(productName) {
+  const mobileSearchBox = document.getElementById("mobileSearchBox")
+  const searchBox = document.getElementById("searchBox")
+
+  if (mobileSearchBox) {
+    mobileSearchBox.value = productName
+  }
+  if (searchBox) {
+    searchBox.value = productName
+  }
+
+  window.currentSearchQuery = productName.toLowerCase()
+  hideMobileAutocomplete()
+  hideAutocomplete()
+  performSearch()
 }
 
 // Perform search - prioritize matching products
@@ -717,6 +393,7 @@ function performSearch() {
 
   window.currentSearchQuery = searchBox.value.toLowerCase().trim()
   hideAutocomplete()
+  hideMobileAutocomplete()
 
   if (window.currentSearchQuery === "") {
     applyFilters()
@@ -769,6 +446,24 @@ function performSearch() {
   }
 }
 
+// Perform mobile search
+function performMobileSearch() {
+  const mobileSearchBox = document.getElementById("mobileSearchBox")
+  if (!mobileSearchBox) return
+
+  window.currentSearchQuery = mobileSearchBox.value.toLowerCase().trim()
+  hideAutocomplete()
+  hideMobileAutocomplete()
+
+  // Sync with desktop search box
+  const searchBox = document.getElementById("searchBox")
+  if (searchBox) {
+    searchBox.value = mobileSearchBox.value
+  }
+
+  performSearch()
+}
+
 // Render products with enhanced design
 function renderProducts(products) {
   const productsContainer = document.getElementById("productsContainer")
@@ -808,8 +503,8 @@ function renderMobileProducts(products) {
     const maxVariant = product.variants[0]
     const minVariant = product.variants[product.variants.length - 1]
 
-    // Calculate discount percentage
-    const originalPrice = maxVariant.price + 20 // Mock original price
+    // Calculate discount percentage - using mobile version
+    const originalPrice = maxVariant.price + Math.round(maxVariant.price * 0.2) // 20% markup for original price
     const discountPercent = Math.round(((originalPrice - maxVariant.price) / originalPrice) * 100)
 
     card.innerHTML = `
@@ -824,8 +519,7 @@ function renderMobileProducts(products) {
           <h3 class="product-name" onclick="goToProductDetails(${product.id})">${product.item_name || "Unnamed Product"}</h3>
           
           <div class="price-info-line">
-            <span>MRP</span>
-            <span>Price</span>
+            <span>Gokhale's MRP</span>
           </div>
           
           <div class="price-values-line">
@@ -837,7 +531,6 @@ function renderMobileProducts(products) {
           
           <div class="discount-box">${discountPercent}% OFF</div>
           
-          <p class="product-description" onclick="goToProductDetails(${product.id})">${product.description || "Delicious traditional snack made with premium ingredients"}</p>
         </div>
       </div>
       
@@ -848,7 +541,7 @@ function renderMobileProducts(products) {
               .map(
                 (variant, i) => `
                 <option value="${variant.price}" ${i === 0 ? "selected" : ""}>
-                  ${variant.packing}gm - ₹${variant.price.toFixed(2)}
+                  ${variant.packing} - ₹${variant.price.toFixed(2)}
                 </option>
               `,
               )
@@ -866,7 +559,7 @@ function renderMobileProducts(products) {
   })
 }
 
-// Render desktop products (with pagination)
+// Render desktop products (with pagination) - Updated to match mobile discount style
 function renderDesktopProducts(products) {
   const productsContainer = document.getElementById("productsContainer")
 
@@ -888,7 +581,7 @@ function renderDesktopProducts(products) {
     const maxVariant = product.variants[0]
     const minVariant = product.variants[product.variants.length - 1]
 
-    // Calculate discount percentage and original price
+    // Calculate discount percentage - using same logic as mobile
     const originalPrice = maxVariant.price + Math.round(maxVariant.price * 0.2) // 20% markup for original price
     const discountPercent = Math.round(((originalPrice - maxVariant.price) / originalPrice) * 100)
 
@@ -1003,13 +696,18 @@ function setQuickFilter(category) {
   window.currentCategory = category
   window.currentSearchQuery = "" // Clear search when using category filter
 
-  // Clear search box
+  // Clear search boxes
   const searchBox = document.getElementById("searchBox")
+  const mobileSearchBox = document.getElementById("mobileSearchBox")
   if (searchBox) {
     searchBox.value = ""
   }
+  if (mobileSearchBox) {
+    mobileSearchBox.value = ""
+  }
 
   hideAutocomplete()
+  hideMobileAutocomplete()
   updateActiveFilterButton(category)
   applyFilters()
 }
@@ -1036,7 +734,7 @@ function updateActiveFilterButton(category) {
   })
 }
 
-// Add to cart without savings functionality
+// Add to cart without minimum order requirement
 async function addToCart(productId) {
   const button = document.querySelector(`button[onclick*="addToCart(${productId})"]`)
   if (button) {
@@ -1089,17 +787,25 @@ async function addToCart(productId) {
 
     // Update cart count and display
     updateCartCount()
+    syncCartCounts()
     updateCartDisplay()
 
     // Show success toast
     showToast(`${product.item_name} (${finalVariant}) added to cart!`, "success")
 
-    // Add pulse animation to cart icon
+    // Add pulse animation to cart icons
     const cartIcon = document.querySelector(".cart-icon")
+    const mobileCartIcon = document.querySelector(".mobile-cart-icon")
     if (cartIcon) {
       cartIcon.style.animation = "pulse 0.6s ease"
       setTimeout(() => {
         cartIcon.style.animation = ""
+      }, 600)
+    }
+    if (mobileCartIcon) {
+      mobileCartIcon.style.animation = "pulse 0.6s ease"
+      setTimeout(() => {
+        mobileCartIcon.style.animation = ""
       }, 600)
     }
 
@@ -1193,11 +899,16 @@ function showNoResults(message) {
 // Clear search
 function clearSearch() {
   const searchBox = document.getElementById("searchBox")
+  const mobileSearchBox = document.getElementById("mobileSearchBox")
   if (searchBox) {
     searchBox.value = ""
   }
+  if (mobileSearchBox) {
+    mobileSearchBox.value = ""
+  }
   window.currentSearchQuery = ""
   hideAutocomplete()
+  hideMobileAutocomplete()
   applyFilters()
 }
 
@@ -1299,11 +1010,15 @@ function updateCartCount() {
     const cart = JSON.parse(localStorage.getItem("cart")) || []
     const totalCount = cart.reduce((sum, item) => sum + item.quantity, 0)
     const cartCountElement = document.getElementById("cartCount")
+    const mobileCartCountElement = document.getElementById("mobileCartCount")
     const cartItemCountElement = document.getElementById("cartItemCount")
     const cartTotalItemsElement = document.getElementById("cartTotalItems")
 
     if (cartCountElement) {
       cartCountElement.textContent = totalCount
+    }
+    if (mobileCartCountElement) {
+      mobileCartCountElement.textContent = totalCount
     }
     if (cartItemCountElement) {
       cartItemCountElement.textContent = `${totalCount} items`
@@ -1316,7 +1031,7 @@ function updateCartCount() {
   }
 }
 
-// Update cart display - removed savings functionality
+// Update cart display - removed minimum order requirement
 function updateCartDisplay() {
   const cartItems = document.getElementById("cartItems")
   const cartSubtotal = document.getElementById("cartSubtotal")
@@ -1383,7 +1098,8 @@ function updateCartDisplay() {
 
     if (cartSubtotal) cartSubtotal.textContent = `₹${totalAmount.toFixed(2)}`
     if (cartTotal) cartTotal.textContent = `₹${totalAmount.toFixed(2)}`
-    if (checkoutBtn) checkoutBtn.disabled = totalAmount < 500
+    // Remove minimum order requirement - allow checkout for any amount
+    if (checkoutBtn) checkoutBtn.disabled = totalAmount === 0
   } catch (error) {
     console.error("Error updating cart display:", error)
   }
@@ -1404,6 +1120,7 @@ function updateCartQuantity(productId, variant, change) {
 
       localStorage.setItem("cart", JSON.stringify(cart))
       updateCartCount()
+      syncCartCounts()
       updateCartDisplay()
     }
   } catch (error) {
@@ -1419,6 +1136,7 @@ function removeFromCart(productId, variant) {
 
     localStorage.setItem("cart", JSON.stringify(filteredCart))
     updateCartCount()
+    syncCartCounts()
     updateCartDisplay()
 
     showToast("Item removed from cart", "success")
@@ -1448,11 +1166,11 @@ function toggleAuth() {
         dropdown.classList.toggle("active")
       }
     } else {
-      window.location.href = "/login.html"
+      window.location.href = "/login"
     }
   } catch (err) {
     console.error("Error in toggleAuth:", err)
-    window.location.href = "/login.html"
+    window.location.href = "/login"
   }
 }
 
@@ -1481,9 +1199,15 @@ function setupClickOutsideHandlers() {
   document.addEventListener("click", (e) => {
     // Handle auth dropdown
     const authContainer = document.querySelector(".auth-container")
+    const mobileAuthContainer = document.querySelector(".mobile-auth-container")
     const userDropdown = document.getElementById("userDropdown")
 
-    if (authContainer && !authContainer.contains(e.target)) {
+    if (
+      authContainer &&
+      !authContainer.contains(e.target) &&
+      mobileAuthContainer &&
+      !mobileAuthContainer.contains(e.target)
+    ) {
       if (userDropdown) {
         userDropdown.classList.remove("active")
       }
@@ -1491,11 +1215,19 @@ function setupClickOutsideHandlers() {
 
     // Handle autocomplete dropdown
     const searchContainer = document.querySelector(".search-container")
+    const mobileSearchContainer = document.querySelector(".mobile-search-container")
     const autocompleteDropdown = document.getElementById("autocompleteDropdown")
+    const mobileAutocompleteDropdown = document.getElementById("mobileAutocompleteDropdown")
 
     if (searchContainer && !searchContainer.contains(e.target)) {
       if (autocompleteDropdown) {
         hideAutocomplete()
+      }
+    }
+
+    if (mobileSearchContainer && !mobileSearchContainer.contains(e.target)) {
+      if (mobileAutocompleteDropdown) {
+        hideMobileAutocomplete()
       }
     }
 
@@ -1516,6 +1248,7 @@ function setupClickOutsideHandlers() {
       }
 
       hideAutocomplete()
+      hideMobileAutocomplete()
     }
   })
 }
@@ -1524,6 +1257,18 @@ function setupClickOutsideHandlers() {
 window.addEventListener("resize", () => {
   renderProducts(window.filteredProducts)
   updateProductCount()
+  syncCartCounts()
+
+  // Re-setup scroll handler for mobile
+  if (window.innerWidth <= 768) {
+    setupScrollHandler()
+  } else {
+    // Remove hidden class for desktop
+    const header = document.getElementById("header")
+    if (header) {
+      header.classList.remove("hidden")
+    }
+  }
 })
 
 // Utility function for debouncing
@@ -1542,4 +1287,5 @@ function debounce(func, wait) {
 // Initialize cart display on page load
 document.addEventListener("DOMContentLoaded", () => {
   updateCartDisplay()
+  syncCartCounts()
 })
